@@ -73,15 +73,15 @@ unitest/CMakeFiles/md5_test.dir/md5_test.cpp.o: unitest/CMakeFiles/md5_test.dir/
 unitest/CMakeFiles/md5_test.dir/md5_test.cpp.o: ../unitest/md5_test.cpp
 unitest/CMakeFiles/md5_test.dir/md5_test.cpp.o: unitest/CMakeFiles/md5_test.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object unitest/CMakeFiles/md5_test.dir/md5_test.cpp.o"
-	cd /home/qrstu/yty_folder2/OBCompetition/build/unitest && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT unitest/CMakeFiles/md5_test.dir/md5_test.cpp.o -MF CMakeFiles/md5_test.dir/md5_test.cpp.o.d -o CMakeFiles/md5_test.dir/md5_test.cpp.o -c /home/qrstu/yty_folder2/OBCompetition/unitest/md5_test.cpp
+	cd /home/qrstu/yty_folder2/OBCompetition/build/unitest && /bin/x86_64-linux-gnu-g++-9 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT unitest/CMakeFiles/md5_test.dir/md5_test.cpp.o -MF CMakeFiles/md5_test.dir/md5_test.cpp.o.d -o CMakeFiles/md5_test.dir/md5_test.cpp.o -c /home/qrstu/yty_folder2/OBCompetition/unitest/md5_test.cpp
 
 unitest/CMakeFiles/md5_test.dir/md5_test.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/md5_test.dir/md5_test.cpp.i"
-	cd /home/qrstu/yty_folder2/OBCompetition/build/unitest && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/qrstu/yty_folder2/OBCompetition/unitest/md5_test.cpp > CMakeFiles/md5_test.dir/md5_test.cpp.i
+	cd /home/qrstu/yty_folder2/OBCompetition/build/unitest && /bin/x86_64-linux-gnu-g++-9 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/qrstu/yty_folder2/OBCompetition/unitest/md5_test.cpp > CMakeFiles/md5_test.dir/md5_test.cpp.i
 
 unitest/CMakeFiles/md5_test.dir/md5_test.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/md5_test.dir/md5_test.cpp.s"
-	cd /home/qrstu/yty_folder2/OBCompetition/build/unitest && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/qrstu/yty_folder2/OBCompetition/unitest/md5_test.cpp -o CMakeFiles/md5_test.dir/md5_test.cpp.s
+	cd /home/qrstu/yty_folder2/OBCompetition/build/unitest && /bin/x86_64-linux-gnu-g++-9 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/qrstu/yty_folder2/OBCompetition/unitest/md5_test.cpp -o CMakeFiles/md5_test.dir/md5_test.cpp.s
 
 # Object files for target md5_test
 md5_test_OBJECTS = \

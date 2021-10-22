@@ -1,0 +1,517 @@
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/init.cpp init 204]>>Output configuration 
+Begin dump configuration
+[]
+
+[DefaultStorageStage]
+BaseDir=./miniob
+SystemDb=sys
+ThreadId=IOThreads
+
+[DefaultThreads]
+count=3
+
+[ExecuteStage]
+NextStages=DefaultStorageStage,MemStorageStage
+ThreadId=SQLThreads
+
+[IOThreads]
+count=3
+
+[LOG]
+LOG_CONSOLE_LEVEL=1
+LOG_FILE_LEVEL=3
+LOG_FILE_NAME=observer.log
+
+[MemStorageStage]
+ThreadId=IOThreads
+
+[MetricsStage]
+NextStages=TimerStage
+
+[NET]
+CLIENT_ADDRESS=INADDR_ANY
+MAX_CONNECTION_NUM=8192
+PORT=6789
+
+[OptimizeStage]
+NextStages=ExecuteStage
+ThreadId=SQLThreads
+
+[ParseStage]
+NextStages=OptimizeStage
+ThreadId=SQLThreads
+
+[PlanCacheStage]
+NextStages=ExecuteStage,ParseStage
+ThreadId=SQLThreads
+
+[QueryCacheStage]
+NextStages=PlanCacheStage
+ThreadId=SQLThreads
+
+[ResolveStage]
+NextStages=QueryCacheStage
+ThreadId=SQLThreads
+
+[SEDA_BASE]
+EventHistory=false
+MaxEventHistoryNum=100
+STAGES=SessionStage,ExecuteStage,OptimizeStage,ParseStage,ResolveStage,PlanCacheStage,QueryCacheStage,DefaultStorageStage,MemStorageStage,TimerStage,MetricsStage
+ThreadPools=SQLThre
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/init.cpp init_seda 66]>>(Re)Starting State: Pid: 2297429 Time: Thu Oct 21 15:34:09 2021
+
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/init.cpp init_seda 68]>>The process Name is observer
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp init_event_history 201]>>Successfully init_event_history, EventHistory:0, MaxEventHops:100
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076c700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7f242076c700, threadname = SQLThreads
+
+[2021-10-21 15:34:9 pid:2297429 tid:7f241f76a700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7f241f76a700, threadname = SQLThreads
+
+[2021-10-21 15:34:9 pid:2297429 tid:7f241ff6b700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7f241ff6b700, threadname = SQLThreads
+
+[2021-10-21 15:34:9 pid:2297429 tid:7f241df67700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7f241df67700, threadname = IOThreads
+
+[2021-10-21 15:34:9 pid:2297429 tid:7f241e768700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7f241e768700, threadname = IOThreads
+
+[2021-10-21 15:34:9 pid:2297429 tid:7f241ef69700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7f241ef69700, threadname = IOThreads
+
+[2021-10-21 15:34:9 pid:2297429 tid:7f241d766700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7f241d766700, threadname = DefaultThreads
+
+[2021-10-21 15:34:9 pid:2297429 tid:7f241cf65700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7f241cf65700, threadname = DefaultThreads
+
+[2021-10-21 15:34:9 pid:2297429 tid:7f2407fff700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7f2407fff700, threadname = DefaultThreads
+
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp init_stages 347]>>Stage SessionStage use threadpool DefaultThreads.
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp init_stages 347]>>Stage ExecuteStage use threadpool DefaultThreads.
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp init_stages 347]>>Stage OptimizeStage use threadpool DefaultThreads.
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp init_stages 347]>>Stage ParseStage use threadpool DefaultThreads.
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp init_stages 347]>>Stage ResolveStage use threadpool DefaultThreads.
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp init_stages 347]>>Stage PlanCacheStage use threadpool DefaultThreads.
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp init_stages 347]>>Stage QueryCacheStage use threadpool DefaultThreads.
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/default/default_storage_stage.cpp set_properties 86]>>Use sys as system db
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/default/default_handler.cpp init 52]>>Default handler init with ./miniob success
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076d740  WARNNING: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/default/default_handler.cpp create_db 74]>>Db already exists: sys
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/common/field_meta.cpp init 70]>>Init a field with name=__trx
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/common/field_meta.cpp init 70]>>Init a field with name=__trx
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/common/field_meta.cpp init 70]>>Init a field with name=id
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/common/field_meta.cpp init 70]>>Init a field with name=age
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/default/disk_buffer_pool.cpp open_file 107]>>Successfully open file ./miniob/db/sys/t.data.
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/default/disk_buffer_pool.cpp open_file 147]>>Successfully open ./miniob/db/sys/t.data. file_id=0, hdr_frame=0x7f241c732010
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/common/db.cpp open_all_tables 108]>>Open table: t, file: t.table
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/common/db.cpp open_all_tables 111]>>All table have been opened. num=1
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/default/default_storage_stage.cpp set_properties 110]>>Open system db success: sys
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp init_stages 347]>>Stage DefaultStorageStage use threadpool DefaultThreads.
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp init_stages 347]>>Stage MemStorageStage use threadpool DefaultThreads.
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp get_thread_pool 291]>>Not set thread_pool_id for TimerStage, use default threadpool DefaultThreads
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp init_stages 347]>>Stage TimerStage use threadpool DefaultThreads.
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp get_thread_pool 291]>>Not set thread_pool_id for MetricsStage, use default threadpool DefaultThreads
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp init_stages 347]>>Stage MetricsStage use threadpool DefaultThreads.
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/metrics_registry.cpp register_metric 37]>>Successfully register metric :DefaultStorageStage.query
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/metrics_registry.cpp register_metric 37]>>Successfully register metric :SessionStage.sql
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/init.cpp init 228]>>Successfully init utility
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/metrics_registry.cpp register_metric 37]>>Successfully register metric :SessionStage.readsocket
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/metrics_registry.cpp register_metric 37]>>Successfully register metric :SessionStage.writesocket
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/net/server.cpp start_tcp_server 330]>>Listen on port 6789
+[2021-10-21 15:34:9 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/net/server.cpp start_tcp_server 348]>>Observer start success
+[2021-10-21 15:34:20 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/net/server.cpp accept 276]>>Accepted connection from 127.0.0.1:40639
+
+[2021-10-21 15:35:9 pid:2297429 tid:7f2407fff700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 15:35:9 pid:2297429 tid:7f2407fff700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 15:35:9 pid:2297429 tid:7f2407fff700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 15:35:9 pid:2297429 tid:7f2407fff700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 15:35:15 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/net/server.cpp recv 170]>>receive command(size=28): insert into t values(1,18)
+
+[2021-10-21 15:35:26 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/net/server.cpp recv 170]>>receive command(size=29): insert into t values(1,18);
+
+[2021-10-21 15:35:39 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/net/server.cpp recv 170]>>receive command(size=9): desc t;
+
+[2021-10-21 15:36:9 pid:2297429 tid:7f241d766700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0.0333333
+[2021-10-21 15:36:9 pid:2297429 tid:7f241d766700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0.05
+[2021-10-21 15:36:9 pid:2297429 tid:7f241d766700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0.05
+[2021-10-21 15:36:9 pid:2297429 tid:7f241d766700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0.1
+[2021-10-21 15:36:46 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/net/server.cpp recv 170]>>receive command(size=35): update t set age=20 where id = 1;
+
+[2021-10-21 15:37:7 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/net/server.cpp recv 170]>>receive command(size=7): help;
+
+[2021-10-21 15:37:9 pid:2297429 tid:7f241d766700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0.0166667
+[2021-10-21 15:37:9 pid:2297429 tid:7f241d766700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0.0333333
+[2021-10-21 15:37:9 pid:2297429 tid:7f241d766700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0.0333333
+[2021-10-21 15:37:9 pid:2297429 tid:7f241d766700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0.0666667
+[2021-10-21 15:37:16 pid:2297429 tid:7f242076d740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/net/server.cpp recv 170]>>receive command(size=17): select * from t
+
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/init.cpp init 204]>>Output configuration 
+Begin dump configuration
+[]
+
+[DefaultStorageStage]
+BaseDir=./miniob
+SystemDb=sys
+ThreadId=IOThreads
+
+[DefaultThreads]
+count=3
+
+[ExecuteStage]
+NextStages=DefaultStorageStage,MemStorageStage
+ThreadId=SQLThreads
+
+[IOThreads]
+count=3
+
+[LOG]
+LOG_CONSOLE_LEVEL=1
+LOG_FILE_LEVEL=3
+LOG_FILE_NAME=observer.log
+
+[MemStorageStage]
+ThreadId=IOThreads
+
+[MetricsStage]
+NextStages=TimerStage
+
+[NET]
+CLIENT_ADDRESS=INADDR_ANY
+MAX_CONNECTION_NUM=8192
+PORT=6789
+
+[OptimizeStage]
+NextStages=ExecuteStage
+ThreadId=SQLThreads
+
+[ParseStage]
+NextStages=OptimizeStage
+ThreadId=SQLThreads
+
+[PlanCacheStage]
+NextStages=ExecuteStage,ParseStage
+ThreadId=SQLThreads
+
+[QueryCacheStage]
+NextStages=PlanCacheStage
+ThreadId=SQLThreads
+
+[ResolveStage]
+NextStages=QueryCacheStage
+ThreadId=SQLThreads
+
+[SEDA_BASE]
+EventHistory=false
+MaxEventHistoryNum=100
+STAGES=SessionStage,ExecuteStage,OptimizeStage,ParseStage,ResolveStage,PlanCacheStage,QueryCacheStage,DefaultStorageStage,MemStorageStage,TimerStage,MetricsStage
+ThreadPools=SQLThre
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/init.cpp init_seda 66]>>(Re)Starting State: Pid: 2297560 Time: Thu Oct 21 15:38:12 2021
+
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/init.cpp init_seda 68]>>The process Name is observer
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp init_event_history 201]>>Successfully init_event_history, EventHistory:0, MaxEventHops:100
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40991700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7f1b40991700, threadname = SQLThreads
+
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40190700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7f1b40190700, threadname = SQLThreads
+
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b3f18e700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7f1b3f18e700, threadname = IOThreads
+
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b3f98f700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7f1b3f98f700, threadname = SQLThreads
+
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b3e98d700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7f1b3e98d700, threadname = IOThreads
+
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b3e18c700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7f1b3e18c700, threadname = IOThreads
+
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b3d98b700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7f1b3d98b700, threadname = DefaultThreads
+
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b3d18a700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7f1b3d18a700, threadname = DefaultThreads
+
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7f1b3c989700, threadname = DefaultThreads
+
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp init_stages 347]>>Stage SessionStage use threadpool DefaultThreads.
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp init_stages 347]>>Stage ExecuteStage use threadpool DefaultThreads.
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp init_stages 347]>>Stage OptimizeStage use threadpool DefaultThreads.
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp init_stages 347]>>Stage ParseStage use threadpool DefaultThreads.
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp init_stages 347]>>Stage ResolveStage use threadpool DefaultThreads.
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp init_stages 347]>>Stage PlanCacheStage use threadpool DefaultThreads.
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp init_stages 347]>>Stage QueryCacheStage use threadpool DefaultThreads.
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/default/default_storage_stage.cpp set_properties 86]>>Use sys as system db
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/default/default_handler.cpp init 52]>>Default handler init with ./miniob success
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40992740  WARNNING: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/default/default_handler.cpp create_db 74]>>Db already exists: sys
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/common/field_meta.cpp init 70]>>Init a field with name=__trx
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/common/field_meta.cpp init 70]>>Init a field with name=__trx
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/common/field_meta.cpp init 70]>>Init a field with name=id
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/common/field_meta.cpp init 70]>>Init a field with name=age
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/default/disk_buffer_pool.cpp open_file 107]>>Successfully open file ./miniob/db/sys/t.data.
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/default/disk_buffer_pool.cpp open_file 147]>>Successfully open ./miniob/db/sys/t.data. file_id=0, hdr_frame=0x7f1b3c156010
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/common/db.cpp open_all_tables 108]>>Open table: t, file: t.table
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/common/db.cpp open_all_tables 111]>>All table have been opened. num=1
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/default/default_storage_stage.cpp set_properties 110]>>Open system db success: sys
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp init_stages 347]>>Stage DefaultStorageStage use threadpool DefaultThreads.
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp init_stages 347]>>Stage MemStorageStage use threadpool DefaultThreads.
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp get_thread_pool 291]>>Not set thread_pool_id for TimerStage, use default threadpool DefaultThreads
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp init_stages 347]>>Stage TimerStage use threadpool DefaultThreads.
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp get_thread_pool 291]>>Not set thread_pool_id for MetricsStage, use default threadpool DefaultThreads
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp init_stages 347]>>Stage MetricsStage use threadpool DefaultThreads.
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/metrics_registry.cpp register_metric 37]>>Successfully register metric :DefaultStorageStage.query
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/metrics_registry.cpp register_metric 37]>>Successfully register metric :SessionStage.sql
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/init.cpp init 228]>>Successfully init utility
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/metrics_registry.cpp register_metric 37]>>Successfully register metric :SessionStage.readsocket
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/metrics_registry.cpp register_metric 37]>>Successfully register metric :SessionStage.writesocket
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/net/server.cpp start_tcp_server 330]>>Listen on port 6789
+[2021-10-21 15:38:12 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/net/server.cpp start_tcp_server 348]>>Observer start success
+[2021-10-21 15:38:15 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/net/server.cpp accept 276]>>Accepted connection from 127.0.0.1:41663
+
+[2021-10-21 15:38:26 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/net/server.cpp recv 170]>>receive command(size=18): select * from t;
+
+[2021-10-21 15:39:6 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/net/server.cpp recv 170]>>receive command(size=30): insert into t values(2, 20);
+
+[2021-10-21 15:39:11 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/net/server.cpp recv 170]>>receive command(size=18): select * from t;
+
+[2021-10-21 15:39:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0.0166667
+[2021-10-21 15:39:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0.05
+[2021-10-21 15:39:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0.05
+[2021-10-21 15:39:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0.1
+[2021-10-21 15:39:58 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/net/server.cpp recv 170]>>receive command(size=33): update t set age=22 where id=2;
+
+[2021-10-21 15:40:5 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/net/server.cpp recv 170]>>receive command(size=18): select * from t;
+
+[2021-10-21 15:40:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0.0166667
+[2021-10-21 15:40:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0.0333333
+[2021-10-21 15:40:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0.0333333
+[2021-10-21 15:40:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0.0666667
+[2021-10-21 15:41:12 pid:2297560 tid:7f1b3d98b700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 15:41:12 pid:2297560 tid:7f1b3d98b700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 15:41:12 pid:2297560 tid:7f1b3d98b700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 15:41:12 pid:2297560 tid:7f1b3d98b700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 15:42:12 pid:2297560 tid:7f1b3d18a700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 15:42:12 pid:2297560 tid:7f1b3d18a700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 15:42:12 pid:2297560 tid:7f1b3d18a700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 15:42:12 pid:2297560 tid:7f1b3d18a700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 15:43:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 15:43:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 15:43:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 15:43:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 15:44:12 pid:2297560 tid:7f1b3d98b700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 15:44:12 pid:2297560 tid:7f1b3d98b700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 15:44:12 pid:2297560 tid:7f1b3d98b700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 15:44:12 pid:2297560 tid:7f1b3d98b700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 15:45:12 pid:2297560 tid:7f1b3d18a700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 15:45:12 pid:2297560 tid:7f1b3d18a700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 15:45:12 pid:2297560 tid:7f1b3d18a700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 15:45:12 pid:2297560 tid:7f1b3d18a700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 15:46:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 15:46:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 15:46:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 15:46:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 15:47:12 pid:2297560 tid:7f1b3d98b700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 15:47:12 pid:2297560 tid:7f1b3d98b700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 15:47:12 pid:2297560 tid:7f1b3d98b700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 15:47:12 pid:2297560 tid:7f1b3d98b700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 15:48:12 pid:2297560 tid:7f1b3d18a700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 15:48:12 pid:2297560 tid:7f1b3d18a700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 15:48:12 pid:2297560 tid:7f1b3d18a700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 15:48:12 pid:2297560 tid:7f1b3d18a700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 15:49:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 15:49:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 15:49:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 15:49:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 15:50:12 pid:2297560 tid:7f1b3d98b700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 15:50:12 pid:2297560 tid:7f1b3d98b700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 15:50:12 pid:2297560 tid:7f1b3d98b700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 15:50:12 pid:2297560 tid:7f1b3d98b700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 15:51:12 pid:2297560 tid:7f1b3d18a700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 15:51:12 pid:2297560 tid:7f1b3d18a700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 15:51:12 pid:2297560 tid:7f1b3d18a700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 15:51:12 pid:2297560 tid:7f1b3d18a700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 15:52:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 15:52:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 15:52:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 15:52:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 15:53:12 pid:2297560 tid:7f1b3d98b700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 15:53:12 pid:2297560 tid:7f1b3d98b700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 15:53:12 pid:2297560 tid:7f1b3d98b700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 15:53:12 pid:2297560 tid:7f1b3d98b700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 15:54:12 pid:2297560 tid:7f1b3d18a700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 15:54:12 pid:2297560 tid:7f1b3d18a700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 15:54:12 pid:2297560 tid:7f1b3d18a700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 15:54:12 pid:2297560 tid:7f1b3d18a700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 15:55:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 15:55:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 15:55:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 15:55:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 15:56:12 pid:2297560 tid:7f1b3d98b700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 15:56:12 pid:2297560 tid:7f1b3d98b700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 15:56:12 pid:2297560 tid:7f1b3d98b700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 15:56:12 pid:2297560 tid:7f1b3d98b700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 15:57:12 pid:2297560 tid:7f1b3d18a700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 15:57:12 pid:2297560 tid:7f1b3d18a700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 15:57:12 pid:2297560 tid:7f1b3d18a700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 15:57:12 pid:2297560 tid:7f1b3d18a700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 15:58:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 15:58:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 15:58:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 15:58:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 15:59:12 pid:2297560 tid:7f1b3d98b700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 15:59:12 pid:2297560 tid:7f1b3d98b700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 15:59:12 pid:2297560 tid:7f1b3d98b700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 15:59:12 pid:2297560 tid:7f1b3d98b700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 16:0:12 pid:2297560 tid:7f1b3d18a700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 16:0:12 pid:2297560 tid:7f1b3d18a700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 16:0:12 pid:2297560 tid:7f1b3d18a700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 16:0:12 pid:2297560 tid:7f1b3d18a700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 16:1:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 16:1:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 16:1:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 16:1:12 pid:2297560 tid:7f1b3c989700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 16:2:12 pid:2297560 tid:7f1b3d98b700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 16:2:12 pid:2297560 tid:7f1b3d98b700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 16:2:12 pid:2297560 tid:7f1b3d98b700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 16:2:12 pid:2297560 tid:7f1b3d98b700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 16:3:12 pid:2297560 tid:7f1b3d18a700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0
+[2021-10-21 16:3:12 pid:2297560 tid:7f1b3d18a700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0
+[2021-10-21 16:3:12 pid:2297560 tid:7f1b3d18a700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0
+[2021-10-21 16:3:12 pid:2297560 tid:7f1b3d18a700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0
+[2021-10-21 16:3:42 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/net/server.cpp recv 160]>>The peer has been closed 127.0.0.1:41663
+
+[2021-10-21 16:3:42 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/net/server.cpp close_connection 97]>>Close connection of 127.0.0.1:41663.
+[2021-10-21 16:3:45 pid:2297560 tid:7f1b177fe700  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/main.cpp quit_thread_func 135]>>Receive signal: 2
+[2021-10-21 16:3:45 pid:2297560 tid:7f1b177fe700  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/net/server.cpp shutdown 429]>>Server shutting down
+[2021-10-21 16:3:45 pid:2297560 tid:7f1b177fe700  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/net/server.cpp shutdown 449]>>Server quit
+[2021-10-21 16:3:45 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/main.cpp main 165]>>Server stopped
+[2021-10-21 16:3:45 pid:2297560 tid:7f1b16ffd700  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/main.cpp quit_thread_func 135]>>Receive signal: 2
+[2021-10-21 16:3:45 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/common/table.cpp sync 718]>>Sync table over. table=t
+[2021-10-21 16:3:45 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/common/db.cpp sync 135]>>Sync db over. db=sys
+[2021-10-21 16:3:45 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/default/disk_buffer_pool.cpp close_file 173]>>Successfully close file 0:.
+[2021-10-21 16:3:45 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/common/table.cpp ~Table 46]>>Table has been closed: t
+[2021-10-21 16:3:45 pid:2297560 tid:7f1b40992740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/common/db.cpp ~Db 33]>>Db has been closed: sys
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/init.cpp init 204]>>Output configuration 
+Begin dump configuration
+[]
+
+[DefaultStorageStage]
+BaseDir=./miniob
+SystemDb=sys
+ThreadId=IOThreads
+
+[DefaultThreads]
+count=3
+
+[ExecuteStage]
+NextStages=DefaultStorageStage,MemStorageStage
+ThreadId=SQLThreads
+
+[IOThreads]
+count=3
+
+[LOG]
+LOG_CONSOLE_LEVEL=1
+LOG_FILE_LEVEL=3
+LOG_FILE_NAME=observer.log
+
+[MemStorageStage]
+ThreadId=IOThreads
+
+[MetricsStage]
+NextStages=TimerStage
+
+[NET]
+CLIENT_ADDRESS=INADDR_ANY
+MAX_CONNECTION_NUM=8192
+PORT=6789
+
+[OptimizeStage]
+NextStages=ExecuteStage
+ThreadId=SQLThreads
+
+[ParseStage]
+NextStages=OptimizeStage
+ThreadId=SQLThreads
+
+[PlanCacheStage]
+NextStages=ExecuteStage,ParseStage
+ThreadId=SQLThreads
+
+[QueryCacheStage]
+NextStages=PlanCacheStage
+ThreadId=SQLThreads
+
+[ResolveStage]
+NextStages=QueryCacheStage
+ThreadId=SQLThreads
+
+[SEDA_BASE]
+EventHistory=false
+MaxEventHistoryNum=100
+STAGES=SessionStage,ExecuteStage,OptimizeStage,ParseStage,ResolveStage,PlanCacheStage,QueryCacheStage,DefaultStorageStage,MemStorageStage,TimerStage,MetricsStage
+ThreadPools=SQLThre
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/init.cpp init_seda 66]>>(Re)Starting State: Pid: 2304162 Time: Thu Oct 21 18:41:03 2021
+
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/init.cpp init_seda 68]>>The process Name is observer
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp init_event_history 201]>>Successfully init_event_history, EventHistory:0, MaxEventHops:100
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1bd700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7fa82b1bd700, threadname = SQLThreads
+
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82a9bc700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7fa82a9bc700, threadname = SQLThreads
+
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82a1bb700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7fa82a1bb700, threadname = SQLThreads
+
+[2021-10-21 18:41:3 pid:2304162 tid:7fa8299ba700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7fa8299ba700, threadname = IOThreads
+
+[2021-10-21 18:41:3 pid:2304162 tid:7fa81bfff700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7fa81bfff700, threadname = DefaultThreads
+
+[2021-10-21 18:41:3 pid:2304162 tid:7fa81b7fe700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7fa81b7fe700, threadname = DefaultThreads
+
+[2021-10-21 18:41:3 pid:2304162 tid:7fa81affd700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7fa81affd700, threadname = DefaultThreads
+
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp init_stages 347]>>Stage SessionStage use threadpool DefaultThreads.
+[2021-10-21 18:41:3 pid:2304162 tid:7fa8291b9700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7fa8291b9700, threadname = IOThreads
+
+[2021-10-21 18:41:3 pid:2304162 tid:7fa8289b8700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/thread_pool.cpp run_thread 242]>>threadid = 7fa8289b8700, threadname = IOThreads
+
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp init_stages 347]>>Stage ExecuteStage use threadpool DefaultThreads.
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp init_stages 347]>>Stage OptimizeStage use threadpool DefaultThreads.
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp init_stages 347]>>Stage ParseStage use threadpool DefaultThreads.
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp init_stages 347]>>Stage ResolveStage use threadpool DefaultThreads.
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp init_stages 347]>>Stage PlanCacheStage use threadpool DefaultThreads.
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp init_stages 347]>>Stage QueryCacheStage use threadpool DefaultThreads.
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/default/default_storage_stage.cpp set_properties 86]>>Use sys as system db
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/default/default_handler.cpp init 52]>>Default handler init with ./miniob success
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1be740  WARNNING: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/default/default_handler.cpp create_db 74]>>Db already exists: sys
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/common/field_meta.cpp init 70]>>Init a field with name=__trx
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/common/field_meta.cpp init 70]>>Init a field with name=__trx
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/common/field_meta.cpp init 70]>>Init a field with name=id
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/common/field_meta.cpp init 70]>>Init a field with name=age
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/default/disk_buffer_pool.cpp open_file 107]>>Successfully open file ./miniob/db/sys/t.data.
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/default/disk_buffer_pool.cpp open_file 147]>>Successfully open ./miniob/db/sys/t.data. file_id=0, hdr_frame=0x7fa828185010
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/common/db.cpp open_all_tables 108]>>Open table: t, file: t.table
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/common/db.cpp open_all_tables 111]>>All table have been opened. num=1
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/default/default_storage_stage.cpp set_properties 110]>>Open system db success: sys
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp init_stages 347]>>Stage DefaultStorageStage use threadpool DefaultThreads.
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp init_stages 347]>>Stage MemStorageStage use threadpool DefaultThreads.
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp get_thread_pool 291]>>Not set thread_pool_id for TimerStage, use default threadpool DefaultThreads
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp init_stages 347]>>Stage TimerStage use threadpool DefaultThreads.
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp get_thread_pool 291]>>Not set thread_pool_id for MetricsStage, use default threadpool DefaultThreads
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/seda/seda_config.cpp init_stages 347]>>Stage MetricsStage use threadpool DefaultThreads.
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/metrics_registry.cpp register_metric 37]>>Successfully register metric :DefaultStorageStage.query
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/metrics_registry.cpp register_metric 37]>>Successfully register metric :SessionStage.sql
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/init.cpp init 228]>>Successfully init utility
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/metrics_registry.cpp register_metric 37]>>Successfully register metric :SessionStage.readsocket
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/metrics_registry.cpp register_metric 37]>>Successfully register metric :SessionStage.writesocket
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/net/server.cpp start_tcp_server 330]>>Listen on port 6789
+[2021-10-21 18:41:3 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/net/server.cpp start_tcp_server 348]>>Observer start success
+[2021-10-21 18:41:8 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/net/server.cpp accept 276]>>Accepted connection from 127.0.0.1:9409
+
+[2021-10-21 18:41:25 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/net/server.cpp recv 170]>>receive command(size=18): select * from t;
+
+[2021-10-21 18:41:38 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/net/server.cpp recv 170]>>receive command(size=35): update t set age=22 where id = 2;
+
+[2021-10-21 18:41:38 pid:2304162 tid:7fa81affd700  ERROR: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/common/table.cpp update_record 524]>>update err
+[2021-10-21 18:42:3 pid:2304162 tid:7fa81bfff700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>DefaultStorageStage.query:mean:0,tps:0.0166667
+[2021-10-21 18:42:3 pid:2304162 tid:7fa81bfff700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.readsocket:mean:0,tps:0.0333333
+[2021-10-21 18:42:3 pid:2304162 tid:7fa81bfff700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.sql:mean:0,tps:0.0333333
+[2021-10-21 18:42:3 pid:2304162 tid:7fa81bfff700  INFO: /home/qrstu/yty_folder2/OBCompetition/deps/common/metrics/log_reporter.cpp report 35]>>SessionStage.writesocket:mean:0,tps:0.0666667
+[2021-10-21 18:42:29 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/net/server.cpp recv 160]>>The peer has been closed 127.0.0.1:9409
+
+[2021-10-21 18:42:29 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/net/server.cpp close_connection 97]>>Close connection of 127.0.0.1:9409.
+[2021-10-21 18:42:31 pid:2304162 tid:7fa819ffb700  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/main.cpp quit_thread_func 135]>>Receive signal: 2
+[2021-10-21 18:42:31 pid:2304162 tid:7fa819ffb700  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/net/server.cpp shutdown 429]>>Server shutting down
+[2021-10-21 18:42:31 pid:2304162 tid:7fa819ffb700  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/net/server.cpp shutdown 449]>>Server quit
+[2021-10-21 18:42:34 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/main.cpp main 165]>>Server stopped
+[2021-10-21 18:42:34 pid:2304162 tid:7fa8197fa700  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/main.cpp quit_thread_func 135]>>Receive signal: 2
+[2021-10-21 18:42:34 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/common/table.cpp sync 720]>>Sync table over. table=t
+[2021-10-21 18:42:34 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/common/db.cpp sync 135]>>Sync db over. db=sys
+[2021-10-21 18:42:34 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/default/disk_buffer_pool.cpp close_file 173]>>Successfully close file 0:.
+[2021-10-21 18:42:34 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/common/table.cpp ~Table 46]>>Table has been closed: t
+[2021-10-21 18:42:34 pid:2304162 tid:7fa82b1be740  INFO: /home/qrstu/yty_folder2/OBCompetition/src/observer/storage/common/db.cpp ~Db 33]>>Db has been closed: sys

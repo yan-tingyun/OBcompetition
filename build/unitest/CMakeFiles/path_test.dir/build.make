@@ -73,15 +73,15 @@ unitest/CMakeFiles/path_test.dir/path_test.cpp.o: unitest/CMakeFiles/path_test.d
 unitest/CMakeFiles/path_test.dir/path_test.cpp.o: ../unitest/path_test.cpp
 unitest/CMakeFiles/path_test.dir/path_test.cpp.o: unitest/CMakeFiles/path_test.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object unitest/CMakeFiles/path_test.dir/path_test.cpp.o"
-	cd /home/qrstu/yty_folder2/OBCompetition/build/unitest && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT unitest/CMakeFiles/path_test.dir/path_test.cpp.o -MF CMakeFiles/path_test.dir/path_test.cpp.o.d -o CMakeFiles/path_test.dir/path_test.cpp.o -c /home/qrstu/yty_folder2/OBCompetition/unitest/path_test.cpp
+	cd /home/qrstu/yty_folder2/OBCompetition/build/unitest && /bin/x86_64-linux-gnu-g++-9 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT unitest/CMakeFiles/path_test.dir/path_test.cpp.o -MF CMakeFiles/path_test.dir/path_test.cpp.o.d -o CMakeFiles/path_test.dir/path_test.cpp.o -c /home/qrstu/yty_folder2/OBCompetition/unitest/path_test.cpp
 
 unitest/CMakeFiles/path_test.dir/path_test.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/path_test.dir/path_test.cpp.i"
-	cd /home/qrstu/yty_folder2/OBCompetition/build/unitest && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/qrstu/yty_folder2/OBCompetition/unitest/path_test.cpp > CMakeFiles/path_test.dir/path_test.cpp.i
+	cd /home/qrstu/yty_folder2/OBCompetition/build/unitest && /bin/x86_64-linux-gnu-g++-9 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/qrstu/yty_folder2/OBCompetition/unitest/path_test.cpp > CMakeFiles/path_test.dir/path_test.cpp.i
 
 unitest/CMakeFiles/path_test.dir/path_test.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/path_test.dir/path_test.cpp.s"
-	cd /home/qrstu/yty_folder2/OBCompetition/build/unitest && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/qrstu/yty_folder2/OBCompetition/unitest/path_test.cpp -o CMakeFiles/path_test.dir/path_test.cpp.s
+	cd /home/qrstu/yty_folder2/OBCompetition/build/unitest && /bin/x86_64-linux-gnu-g++-9 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/qrstu/yty_folder2/OBCompetition/unitest/path_test.cpp -o CMakeFiles/path_test.dir/path_test.cpp.s
 
 # Object files for target path_test
 path_test_OBJECTS = \

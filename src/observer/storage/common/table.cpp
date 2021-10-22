@@ -519,8 +519,100 @@ RC Table::create_index(Trx *trx, const char *index_name, const char *attribute_n
   return rc;
 }
 
-RC Table::update_record(Trx *trx, const char *attribute_name, const Value *value, int condition_num, const Condition conditions[], int *updated_count) {
-  return RC::GENERIC_ERROR;
+
+class RecordUpdater{
+private:
+  Table & table_;
+  Trx *trx_;
+  int updated_count_ = 0;
+  const char *attribute_name;
+  const Value *value;
+public:
+  RecordUpdater(Table &table, Trx *trx, const char *attribute_name, const Value *value) : 
+              table_(table), trx_(trx), attribute_name(attribute_name), value(value) {
+  }
+
+  RC update_record(Record *record) {
+    RC rc = RC::SUCCESS;
+    rc = table_.update_record(trx_, record, attribute_name, value);
+    if (rc == RC::SUCCESS) {
+      updated_count_++;
+    }
+    return rc;
+  }
+
+  int updated_count() const {
+    return updated_count_;
+  }
+};
+
+static RC record_reader_update_adapter(Record *record, void *context) {
+  RecordUpdater &record_updater = *(RecordUpdater *)context;
+  return record_updater.update_record(record);
+}
+
+
+RC Table::update_record(Trx *trx, const char *attribute_name, const Value *value, ConditionFilter *filter, int *updated_count) {
+  RecordUpdater updater(*this, trx, attribute_name, value);
+  RC rc = scan_record(trx, filter, -1, &updater, record_reader_update_adapter);
+  if (updated_count != nullptr) {
+    *updated_count = updater.updated_count();
+  }
+  return rc;
+  
+  // return RC::GENERIC_ERROR;
+}
+
+RC Table::update_record(Trx *trx, Record *record, const char *attribute_name, const Value *value) {
+  RC rc = RC::SUCCESS;
+  rc = delete_entry_of_indexes(record->data, record->rid, false);
+  if (rc != RC::SUCCESS) {
+    LOG_ERROR("Failed to delete indexes of record (rid=%d.%d). rc=%d:%s",
+              record->rid.page_num, record->rid.slot_num, rc, strrc(rc));
+  } else {
+
+    const FieldMeta *field = table_meta_.field(attribute_name);
+    // 检查是否存在这个字段
+    if(field == nullptr){
+      LOG_ERROR("failed to update, field=%s missing!", attribute_name);
+      return RC::SCHEMA_FIELD_MISSING;
+    }
+
+    if (field->type() != value->type) {
+      LOG_ERROR("Invalid value type. field name=%s, type=%d, but given=%d",
+        field->name(), field->type(), value->type);
+      return RC::SCHEMA_FIELD_TYPE_MISMATCH;
+    }
+
+
+    memcpy(record->data + field->offset(), value->data, field->len());
+    std::cout << record->rid.page_num << " + " << record->rid.slot_num << " + " << attribute_name << std::endl;
+
+    rc = record_handler_->update_record(record);
+    if (rc != RC::SUCCESS) {
+      LOG_ERROR("Update record failed. table name=%s, rc=%d:%s", table_meta_.name(), rc, strrc(rc));
+      return rc;
+    }
+
+
+    // insert 新的索引条目
+    rc = insert_entry_of_indexes(record->data, record->rid);
+
+    if (rc != RC::SUCCESS) {
+      RC rc2 = delete_entry_of_indexes(record->data, record->rid, true);
+      if (rc2 != RC::SUCCESS) {
+        LOG_PANIC("Failed to rollback index data when insert index entries failed. table name=%s, rc=%d:%s",
+                  name(), rc2, strrc(rc2));
+      }
+      rc2 = record_handler_->delete_record(&record->rid);
+      if (rc2 != RC::SUCCESS) {
+        LOG_PANIC("Failed to rollback record data when update index entries failed. table name=%s, rc=%d:%s",
+                  name(), rc2, strrc(rc2));
+      }
+      return rc;
+    }
+  }
+  return rc;
 }
 
 class RecordDeleter {

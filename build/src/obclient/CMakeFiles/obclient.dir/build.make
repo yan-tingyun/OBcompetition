@@ -73,15 +73,15 @@ src/obclient/CMakeFiles/obclient.dir/client.cpp.o: src/obclient/CMakeFiles/obcli
 src/obclient/CMakeFiles/obclient.dir/client.cpp.o: ../src/obclient/client.cpp
 src/obclient/CMakeFiles/obclient.dir/client.cpp.o: src/obclient/CMakeFiles/obclient.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object src/obclient/CMakeFiles/obclient.dir/client.cpp.o"
-	cd /home/qrstu/yty_folder2/OBCompetition/build/src/obclient && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/obclient/CMakeFiles/obclient.dir/client.cpp.o -MF CMakeFiles/obclient.dir/client.cpp.o.d -o CMakeFiles/obclient.dir/client.cpp.o -c /home/qrstu/yty_folder2/OBCompetition/src/obclient/client.cpp
+	cd /home/qrstu/yty_folder2/OBCompetition/build/src/obclient && /bin/x86_64-linux-gnu-g++-9 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/obclient/CMakeFiles/obclient.dir/client.cpp.o -MF CMakeFiles/obclient.dir/client.cpp.o.d -o CMakeFiles/obclient.dir/client.cpp.o -c /home/qrstu/yty_folder2/OBCompetition/src/obclient/client.cpp
 
 src/obclient/CMakeFiles/obclient.dir/client.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/obclient.dir/client.cpp.i"
-	cd /home/qrstu/yty_folder2/OBCompetition/build/src/obclient && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/qrstu/yty_folder2/OBCompetition/src/obclient/client.cpp > CMakeFiles/obclient.dir/client.cpp.i
+	cd /home/qrstu/yty_folder2/OBCompetition/build/src/obclient && /bin/x86_64-linux-gnu-g++-9 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/qrstu/yty_folder2/OBCompetition/src/obclient/client.cpp > CMakeFiles/obclient.dir/client.cpp.i
 
 src/obclient/CMakeFiles/obclient.dir/client.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/obclient.dir/client.cpp.s"
-	cd /home/qrstu/yty_folder2/OBCompetition/build/src/obclient && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/qrstu/yty_folder2/OBCompetition/src/obclient/client.cpp -o CMakeFiles/obclient.dir/client.cpp.s
+	cd /home/qrstu/yty_folder2/OBCompetition/build/src/obclient && /bin/x86_64-linux-gnu-g++-9 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/qrstu/yty_folder2/OBCompetition/src/obclient/client.cpp -o CMakeFiles/obclient.dir/client.cpp.s
 
 # Object files for target obclient
 obclient_OBJECTS = \
