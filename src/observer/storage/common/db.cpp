@@ -71,6 +71,21 @@ RC Db::create_table(const char *table_name, int attribute_count, const AttrInfo 
   return RC::SUCCESS;
 }
 
+
+// Author yty 21/10/26
+// implement drop table
+// drop table and every index of this table
+RC Db::drop_table(const char *table_name){
+  RC rc = RC::SUCCESS;
+  // check table_name
+  if (opened_tables_.count(table_name) != 0) {
+    return RC::SCHEMA_TABLE_EXIST;
+  }
+  return RC::SUCCESS;
+}
+
+
+
 Table *Db::find_table(const char *table_name) const {
   std::unordered_map<std::string, Table *>::const_iterator iter = opened_tables_.find(table_name);
   if (iter != opened_tables_.end()) {

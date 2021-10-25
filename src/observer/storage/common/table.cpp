@@ -520,6 +520,9 @@ RC Table::create_index(Trx *trx, const char *index_name, const char *attribute_n
 }
 
 
+
+// Author: yty 21/10/22
+// implement of update record
 class RecordUpdater{
 private:
   Table & table_;
@@ -586,7 +589,7 @@ RC Table::update_record(Trx *trx, Record *record, const char *attribute_name, co
 
 
     memcpy(record->data + field->offset(), value->data, field->len());
-    std::cout << record->rid.page_num << " + " << record->rid.slot_num << " + " << attribute_name << std::endl;
+    
 
     rc = record_handler_->update_record(record);
     if (rc != RC::SUCCESS) {
@@ -614,6 +617,9 @@ RC Table::update_record(Trx *trx, Record *record, const char *attribute_name, co
   }
   return rc;
 }
+
+
+
 
 class RecordDeleter {
 public:

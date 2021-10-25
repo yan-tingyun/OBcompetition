@@ -127,9 +127,22 @@ RC DefaultHandler::create_table(const char *dbname, const char *relation_name, i
   return db->create_table(relation_name, attribute_count, attributes);
 }
 
+
+
+// Author : yty 21/10/25
+// implement drop table
 RC DefaultHandler::drop_table(const char *dbname, const char *relation_name) {
-  return RC::GENERIC_ERROR;
+  Db *db = find_db(dbname);
+  if (db == nullptr) {
+    LOG_WARN("failed to execute sql : Drop table %s, ERROR : db named %s does not exist", relation_name, dbname);
+    return RC::SCHEMA_DB_NOT_OPENED;
+  }
+  return db->drop_table(relation_name);
+  
+  // return RC::GENERIC_ERROR;
 }
+
+
 
 RC DefaultHandler::create_index(Trx *trx, const char *dbname, const char *relation_name, const char *index_name, const char *attribute_name) {
   Table *table = find_table(dbname, relation_name);

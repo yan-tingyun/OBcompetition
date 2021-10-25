@@ -220,6 +220,17 @@ void DefaultStorageStage::handle_event(StageEvent *event) {
       }
     }
     break;
+
+  // Author : yty 21/10/25
+  // implement of drop table
+  // 销毁名为relName的表以及在该表上建立的所有索引
+  case SCF_DROP_TABLE:{
+      const DropTable &drop_table = sql->sstr.drop_table;
+      rc = handler_->drop_table(current_db, drop_table.relation_name);
+      snprintf(response, sizeof(response), "%s\n", rc == RC::SUCCESS ? "SUCCESS" : "FAILURE");
+    }
+    break;
+
   case SCF_DESC_TABLE: {
       const char *table_name = sql->sstr.desc_table.relation_name;
       Table *table = handler_->find_table(current_db, table_name);
