@@ -238,7 +238,8 @@ void DefaultStorageStage::handle_event(StageEvent *event) {
       if (table != nullptr) {
         table->table_meta().desc(ss);
       } else {
-        ss << "No such table: " << table_name << std::endl;
+        LOG_WARN("No such table: %s",table_name);
+        ss << "FAILURE" << std::endl;
       }
       snprintf(response, sizeof(response), "%s", ss.str().c_str());
     }

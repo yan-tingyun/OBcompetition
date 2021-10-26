@@ -25,6 +25,7 @@ See the Mulan PSL v2 for more details. */
 #include "storage/common/table.h"
 #include "storage/common/meta_util.h"
 
+using namespace std;
 
 Db::~Db() {
   for (auto &iter : opened_tables_) {
@@ -78,9 +79,23 @@ RC Db::create_table(const char *table_name, int attribute_count, const AttrInfo 
 RC Db::drop_table(const char *table_name){
   RC rc = RC::SUCCESS;
   // check table_name
-  if (opened_tables_.count(table_name) != 0) {
-    return RC::SCHEMA_TABLE_EXIST;
+  if (opened_tables_.count(table_name) == 0) {
+    return RC::SCHEMA_TABLE_NOT_EXIST;
   }
+
+  // 思路：
+  // 首先删除表下的索引，然后删除记录及元数据文件，然后将内存中db对象的各个记录索引删除
+  // 注意删除记录时要先关闭文件再删，disk_buffer_pool的close_file function
+  string table_file_path = table_meta_file(path_.c_str(), table_name);
+  rc = opened_tables_[table_name]->drop(table_file_path.c_str(), table_name, path_.c_str());
+
+  if (rc != RC::SUCCESS) {
+    LOG_ERROR("drop table failed");
+    return rc;
+  }
+
+  opened_tables_.erase(table_name);
+  LOG_INFO("drop table success. table name=%s", table_name);
   return RC::SUCCESS;
 }
 

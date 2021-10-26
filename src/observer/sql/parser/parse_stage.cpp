@@ -28,6 +28,7 @@ See the Mulan PSL v2 for more details. */
 #include "event/execution_plan_event.h"
 
 using namespace common;
+using namespace std;
 
 //! Constructor
 ParseStage::ParseStage(const char *tag) : Stage(tag) {}
@@ -120,13 +121,19 @@ StageEvent *ParseStage::handle_request(StageEvent *event) {
   }
 
   RC ret = parse(sql.c_str(), result);
+
+
   if (ret != RC::SUCCESS) {
+  
     // set error information to event
-    const char *error = result->sstr.errors != nullptr ? result->sstr.errors : "Unknown error";
+    // this ptr "error" will lead to server shut down, log segment error
+    // const char *error = result->sstr.errors != nullptr ? result->sstr.errors : "Unknown error";
     char response[256];
-    snprintf(response, sizeof(response), "Failed to parse sql: %s, error msg: %s\n", sql.c_str(), error);
+
+    snprintf(response, sizeof(response), "Failed to parse sql: %s\n", sql.c_str());
     // sql_event->session_event()->set_response(response);
     LOG_ERROR(response);
+
     sql_event->session_event()->set_response("FAILURE\n");
     query_destroy(result);
     return nullptr;

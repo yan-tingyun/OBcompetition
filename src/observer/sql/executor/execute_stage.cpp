@@ -34,6 +34,7 @@ See the Mulan PSL v2 for more details. */
 #include "storage/trx/trx.h"
 
 using namespace common;
+using namespace std;
 
 RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, const char *table_name, SelectExeNode &select_node);
 
@@ -183,6 +184,7 @@ void ExecuteStage::handle_request(common::StageEvent *event) {
       const char *response = "show tables;\n"
           "desc `table name`;\n"
           "create table `table name` (`column name` `column type`, ...);\n"
+          "drop table `table name`;\n"
           "create index `index name` on `table` (`column`);\n"
           "insert into `table` values(`value1`,`value2`);\n"
           "update `table` set column=value [where `column`=`value`];\n"

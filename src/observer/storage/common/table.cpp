@@ -28,6 +28,8 @@ See the Mulan PSL v2 for more details. */
 #include "storage/common/bplus_tree_index.h"
 #include "storage/trx/trx.h"
 
+using namespace std;
+
 Table::Table() : 
     data_buffer_pool_(nullptr),
     file_id_(-1),
@@ -110,6 +112,43 @@ RC Table::create(const char *path, const char *name, const char *base_dir, int a
   LOG_INFO("Successfully create table %s:%s", base_dir, name);
   return rc;
 }
+
+
+
+// Author yty 21/10/26
+// implement drop table, close file and drop index first, then close data file and drop record file
+RC Table::drop(const char *path, const char *name, const char *base_dir){
+  LOG_INFO("Begin to drop table : %s", name);
+  RC rc = RC::SUCCESS;
+  
+  // 删除索引文件及索引记录
+  LOG_INFO("Begin to delete index");
+  const int index_num = table_meta_.index_num();
+  for (int i = 0; i < index_num; i++) {
+    const IndexMeta *index_meta = table_meta_.index(i);
+    string index_file = index_data_file(base_dir, name, index_meta->name());
+    if(remove(index_file.c_str()) != 0){
+      LOG_ERROR("delete index file failed");
+      return RC::IOERR_DELETE;
+    }
+  }
+  indexes_.erase(indexes_.begin(), indexes_.end());
+
+  // 删除数据文件
+  string data_file = string(base_dir) + "/" + table_meta_.name() + TABLE_DATA_SUFFIX;
+  if(remove(data_file.c_str()) != 0){
+    LOG_ERROR("delete data file failed");
+    return RC::IOERR_DELETE;
+  }
+
+  // 删除元数据文件 table_name.table
+  if(remove(path) != 0){
+    LOG_ERROR("delete metadata file failed");
+    return RC::IOERR_DELETE;
+  }
+  return RC::SUCCESS;
+}
+
 
 RC Table::open(const char *meta_file, const char *base_dir) {
   // 加载元数据文件
