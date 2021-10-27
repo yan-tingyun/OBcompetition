@@ -1,9 +1,7 @@
 file(REMOVE_RECURSE
-  "../bin/bitmap_test"
-  "../bin/bitmap_test.pdb"
   "CMakeFiles/bitmap_test.dir/bitmap_test.cpp.o"
-  "CMakeFiles/bitmap_test.dir/bitmap_test.cpp.o.d"
-  "bitmap_test[1]_tests.cmake"
+  "../bin/bitmap_test.pdb"
+  "../bin/bitmap_test"
 )
 
 # Per-language clean rules from dependency scanning.

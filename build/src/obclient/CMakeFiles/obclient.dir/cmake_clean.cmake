@@ -1,8 +1,7 @@
 file(REMOVE_RECURSE
-  "../../bin/obclient"
-  "../../bin/obclient.pdb"
   "CMakeFiles/obclient.dir/client.cpp.o"
-  "CMakeFiles/obclient.dir/client.cpp.o.d"
+  "../../bin/obclient.pdb"
+  "../../bin/obclient"
 )
 
 # Per-language clean rules from dependency scanning.

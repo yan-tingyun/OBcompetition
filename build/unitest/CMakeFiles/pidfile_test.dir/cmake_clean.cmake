@@ -1,9 +1,7 @@
 file(REMOVE_RECURSE
-  "../bin/pidfile_test"
-  "../bin/pidfile_test.pdb"
   "CMakeFiles/pidfile_test.dir/pidfile_test.cpp.o"
-  "CMakeFiles/pidfile_test.dir/pidfile_test.cpp.o.d"
-  "pidfile_test[1]_tests.cmake"
+  "../bin/pidfile_test.pdb"
+  "../bin/pidfile_test"
 )
 
 # Per-language clean rules from dependency scanning.

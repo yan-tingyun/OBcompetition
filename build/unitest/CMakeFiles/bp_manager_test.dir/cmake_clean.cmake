@@ -1,9 +1,7 @@
 file(REMOVE_RECURSE
-  "../bin/bp_manager_test"
-  "../bin/bp_manager_test.pdb"
   "CMakeFiles/bp_manager_test.dir/bp_manager_test.cpp.o"
-  "CMakeFiles/bp_manager_test.dir/bp_manager_test.cpp.o.d"
-  "bp_manager_test[1]_tests.cmake"
+  "../bin/bp_manager_test.pdb"
+  "../bin/bp_manager_test"
 )
 
 # Per-language clean rules from dependency scanning.
