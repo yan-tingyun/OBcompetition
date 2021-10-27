@@ -591,33 +591,6 @@ sql/optimizer/optimize_stage.cpp.s:
 	cd /home/qrstu/yty_folder2/OBCompetition/build && $(MAKE) $(MAKESILENT) -f src/observer/CMakeFiles/observer.dir/build.make src/observer/CMakeFiles/observer.dir/sql/optimizer/optimize_stage.cpp.s
 .PHONY : sql/optimizer/optimize_stage.cpp.s
 
-sql/parser/lex.yy.o: sql/parser/lex.yy.c.o
-.PHONY : sql/parser/lex.yy.o
-
-# target to build an object file
-sql/parser/lex.yy.c.o:
-	cd /home/qrstu/yty_folder2/OBCompetition/build && $(MAKE) $(MAKESILENT) -f src/observer/CMakeFiles/observer_static.dir/build.make src/observer/CMakeFiles/observer_static.dir/sql/parser/lex.yy.c.o
-	cd /home/qrstu/yty_folder2/OBCompetition/build && $(MAKE) $(MAKESILENT) -f src/observer/CMakeFiles/observer.dir/build.make src/observer/CMakeFiles/observer.dir/sql/parser/lex.yy.c.o
-.PHONY : sql/parser/lex.yy.c.o
-
-sql/parser/lex.yy.i: sql/parser/lex.yy.c.i
-.PHONY : sql/parser/lex.yy.i
-
-# target to preprocess a source file
-sql/parser/lex.yy.c.i:
-	cd /home/qrstu/yty_folder2/OBCompetition/build && $(MAKE) $(MAKESILENT) -f src/observer/CMakeFiles/observer_static.dir/build.make src/observer/CMakeFiles/observer_static.dir/sql/parser/lex.yy.c.i
-	cd /home/qrstu/yty_folder2/OBCompetition/build && $(MAKE) $(MAKESILENT) -f src/observer/CMakeFiles/observer.dir/build.make src/observer/CMakeFiles/observer.dir/sql/parser/lex.yy.c.i
-.PHONY : sql/parser/lex.yy.c.i
-
-sql/parser/lex.yy.s: sql/parser/lex.yy.c.s
-.PHONY : sql/parser/lex.yy.s
-
-# target to generate assembly for a file
-sql/parser/lex.yy.c.s:
-	cd /home/qrstu/yty_folder2/OBCompetition/build && $(MAKE) $(MAKESILENT) -f src/observer/CMakeFiles/observer_static.dir/build.make src/observer/CMakeFiles/observer_static.dir/sql/parser/lex.yy.c.s
-	cd /home/qrstu/yty_folder2/OBCompetition/build && $(MAKE) $(MAKESILENT) -f src/observer/CMakeFiles/observer.dir/build.make src/observer/CMakeFiles/observer.dir/sql/parser/lex.yy.c.s
-.PHONY : sql/parser/lex.yy.c.s
-
 sql/parser/parse.o: sql/parser/parse.cpp.o
 .PHONY : sql/parser/parse.o
 
@@ -1298,9 +1271,6 @@ help:
 	@echo "... sql/optimizer/optimize_stage.o"
 	@echo "... sql/optimizer/optimize_stage.i"
 	@echo "... sql/optimizer/optimize_stage.s"
-	@echo "... sql/parser/lex.yy.o"
-	@echo "... sql/parser/lex.yy.i"
-	@echo "... sql/parser/lex.yy.s"
 	@echo "... sql/parser/parse.o"
 	@echo "... sql/parser/parse.i"
 	@echo "... sql/parser/parse.s"

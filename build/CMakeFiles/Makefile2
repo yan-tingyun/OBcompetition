@@ -266,12 +266,12 @@ deps/common/CMakeFiles/common.dir/clean:
 src/obclient/CMakeFiles/obclient.dir/all: deps/common/CMakeFiles/common.dir/all
 	$(MAKE) $(MAKESILENT) -f src/obclient/CMakeFiles/obclient.dir/build.make src/obclient/CMakeFiles/obclient.dir/depend
 	$(MAKE) $(MAKESILENT) -f src/obclient/CMakeFiles/obclient.dir/build.make src/obclient/CMakeFiles/obclient.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles --progress-num=52 "Built target obclient"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles --progress-num=52,53 "Built target obclient"
 .PHONY : src/obclient/CMakeFiles/obclient.dir/all
 
 # Build rule for subdir invocation for target.
 src/obclient/CMakeFiles/obclient.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles 24
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles 25
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/obclient/CMakeFiles/obclient.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles 0
 .PHONY : src/obclient/CMakeFiles/obclient.dir/rule
@@ -292,12 +292,12 @@ src/obclient/CMakeFiles/obclient.dir/clean:
 src/observer/CMakeFiles/observer_static.dir/all: deps/common/CMakeFiles/common.dir/all
 	$(MAKE) $(MAKESILENT) -f src/observer/CMakeFiles/observer_static.dir/build.make src/observer/CMakeFiles/observer_static.dir/depend
 	$(MAKE) $(MAKESILENT) -f src/observer/CMakeFiles/observer_static.dir/build.make src/observer/CMakeFiles/observer_static.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles --progress-num=75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96 "Built target observer_static"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles --progress-num=76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96 "Built target observer_static"
 .PHONY : src/observer/CMakeFiles/observer_static.dir/all
 
 # Build rule for subdir invocation for target.
 src/observer/CMakeFiles/observer_static.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles 45
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles 44
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/observer/CMakeFiles/observer_static.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles 0
 .PHONY : src/observer/CMakeFiles/observer_static.dir/rule
@@ -318,7 +318,7 @@ src/observer/CMakeFiles/observer_static.dir/clean:
 src/observer/CMakeFiles/observer.dir/all: deps/common/CMakeFiles/common.dir/all
 	$(MAKE) $(MAKESILENT) -f src/observer/CMakeFiles/observer.dir/build.make src/observer/CMakeFiles/observer.dir/depend
 	$(MAKE) $(MAKESILENT) -f src/observer/CMakeFiles/observer.dir/build.make src/observer/CMakeFiles/observer.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles --progress-num=53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74 "Built target observer"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles --progress-num=54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75 "Built target observer"
 .PHONY : src/observer/CMakeFiles/observer.dir/all
 
 # Build rule for subdir invocation for target.
@@ -350,7 +350,7 @@ unitest/CMakeFiles/rc_test.dir/all: src/observer/CMakeFiles/observer_static.dir/
 
 # Build rule for subdir invocation for target.
 unitest/CMakeFiles/rc_test.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles 47
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles 46
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 unitest/CMakeFiles/rc_test.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles 0
 .PHONY : unitest/CMakeFiles/rc_test.dir/rule
@@ -377,7 +377,7 @@ unitest/CMakeFiles/bp_manager_test.dir/all: src/observer/CMakeFiles/observer_sta
 
 # Build rule for subdir invocation for target.
 unitest/CMakeFiles/bp_manager_test.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles 46
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles 45
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 unitest/CMakeFiles/bp_manager_test.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles 0
 .PHONY : unitest/CMakeFiles/bp_manager_test.dir/rule
@@ -404,7 +404,7 @@ unitest/CMakeFiles/log_test.dir/all: src/observer/CMakeFiles/observer_static.dir
 
 # Build rule for subdir invocation for target.
 unitest/CMakeFiles/log_test.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles 46
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles 45
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 unitest/CMakeFiles/log_test.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles 0
 .PHONY : unitest/CMakeFiles/log_test.dir/rule
@@ -431,7 +431,7 @@ unitest/CMakeFiles/bitmap_test.dir/all: src/observer/CMakeFiles/observer_static.
 
 # Build rule for subdir invocation for target.
 unitest/CMakeFiles/bitmap_test.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles 46
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles 45
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 unitest/CMakeFiles/bitmap_test.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles 0
 .PHONY : unitest/CMakeFiles/bitmap_test.dir/rule
@@ -458,7 +458,7 @@ unitest/CMakeFiles/md5_test.dir/all: src/observer/CMakeFiles/observer_static.dir
 
 # Build rule for subdir invocation for target.
 unitest/CMakeFiles/md5_test.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles 46
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles 45
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 unitest/CMakeFiles/md5_test.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles 0
 .PHONY : unitest/CMakeFiles/md5_test.dir/rule
@@ -485,7 +485,7 @@ unitest/CMakeFiles/pidfile_test.dir/all: src/observer/CMakeFiles/observer_static
 
 # Build rule for subdir invocation for target.
 unitest/CMakeFiles/pidfile_test.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles 46
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles 45
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 unitest/CMakeFiles/pidfile_test.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles 0
 .PHONY : unitest/CMakeFiles/pidfile_test.dir/rule
@@ -512,7 +512,7 @@ unitest/CMakeFiles/path_test.dir/all: src/observer/CMakeFiles/observer_static.di
 
 # Build rule for subdir invocation for target.
 unitest/CMakeFiles/path_test.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles 46
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles 45
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 unitest/CMakeFiles/path_test.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles 0
 .PHONY : unitest/CMakeFiles/path_test.dir/rule
@@ -539,7 +539,7 @@ test/CMakeFiles/client_performance_test.dir/all: src/observer/CMakeFiles/observe
 
 # Build rule for subdir invocation for target.
 test/CMakeFiles/client_performance_test.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles 46
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles 45
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 test/CMakeFiles/client_performance_test.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles 0
 .PHONY : test/CMakeFiles/client_performance_test.dir/rule

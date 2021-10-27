@@ -476,11 +476,6 @@
 },
 {
   "directory": "/home/qrstu/yty_folder2/OBCompetition/build/src/observer",
-  "command": "/bin/x86_64-linux-gnu-gcc-9 -DLINUX -DUNIX -I/home/qrstu/yty_folder2/OBCompetition/src/observer/. -I/home/qrstu/yty_folder2/OBCompetition/src/observer -I/home/qrstu/yty_folder2/OBCompetition/src/observer/../../deps  -Wall -DCMAKE_EXPORT_COMPILE_COMMANDS=1  -O2 -g  -g -o CMakeFiles/observer_static.dir/sql/parser/lex.yy.c.o -c /home/qrstu/yty_folder2/OBCompetition/src/observer/sql/parser/lex.yy.c",
-  "file": "/home/qrstu/yty_folder2/OBCompetition/src/observer/sql/parser/lex.yy.c"
-},
-{
-  "directory": "/home/qrstu/yty_folder2/OBCompetition/build/src/observer",
   "command": "/bin/x86_64-linux-gnu-g++-9 -DLINUX -DUNIX -I/home/qrstu/yty_folder2/OBCompetition/src/observer/. -I/home/qrstu/yty_folder2/OBCompetition/src/observer -I/home/qrstu/yty_folder2/OBCompetition/src/observer/../../deps  -Wall -DCMAKE_EXPORT_COMPILE_COMMANDS=1  -O2 -g  -g -std=gnu++14 -o CMakeFiles/observer_static.dir/sql/parser/parse.cpp.o -c /home/qrstu/yty_folder2/OBCompetition/src/observer/sql/parser/parse.cpp",
   "file": "/home/qrstu/yty_folder2/OBCompetition/src/observer/sql/parser/parse.cpp"
 },
@@ -668,11 +663,6 @@
   "directory": "/home/qrstu/yty_folder2/OBCompetition/build/src/observer",
   "command": "/bin/x86_64-linux-gnu-g++-9 -DLINUX -DUNIX -I/home/qrstu/yty_folder2/OBCompetition/src/observer/. -I/home/qrstu/yty_folder2/OBCompetition/src/observer -I/home/qrstu/yty_folder2/OBCompetition/src/observer/../../deps  -Wall -DCMAKE_EXPORT_COMPILE_COMMANDS=1  -O2 -g  -g -std=gnu++14 -o CMakeFiles/observer.dir/sql/optimizer/optimize_stage.cpp.o -c /home/qrstu/yty_folder2/OBCompetition/src/observer/sql/optimizer/optimize_stage.cpp",
   "file": "/home/qrstu/yty_folder2/OBCompetition/src/observer/sql/optimizer/optimize_stage.cpp"
-},
-{
-  "directory": "/home/qrstu/yty_folder2/OBCompetition/build/src/observer",
-  "command": "/bin/x86_64-linux-gnu-gcc-9 -DLINUX -DUNIX -I/home/qrstu/yty_folder2/OBCompetition/src/observer/. -I/home/qrstu/yty_folder2/OBCompetition/src/observer -I/home/qrstu/yty_folder2/OBCompetition/src/observer/../../deps  -Wall -DCMAKE_EXPORT_COMPILE_COMMANDS=1  -O2 -g  -g -o CMakeFiles/observer.dir/sql/parser/lex.yy.c.o -c /home/qrstu/yty_folder2/OBCompetition/src/observer/sql/parser/lex.yy.c",
-  "file": "/home/qrstu/yty_folder2/OBCompetition/src/observer/sql/parser/lex.yy.c"
 },
 {
   "directory": "/home/qrstu/yty_folder2/OBCompetition/build/src/observer",

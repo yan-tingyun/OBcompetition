@@ -31,8 +31,6 @@ file(REMOVE_RECURSE
   "CMakeFiles/observer.dir/sql/executor/value.cpp.o.d"
   "CMakeFiles/observer.dir/sql/optimizer/optimize_stage.cpp.o"
   "CMakeFiles/observer.dir/sql/optimizer/optimize_stage.cpp.o.d"
-  "CMakeFiles/observer.dir/sql/parser/lex.yy.c.o"
-  "CMakeFiles/observer.dir/sql/parser/lex.yy.c.o.d"
   "CMakeFiles/observer.dir/sql/parser/parse.cpp.o"
   "CMakeFiles/observer.dir/sql/parser/parse.cpp.o.d"
   "CMakeFiles/observer.dir/sql/parser/parse_stage.cpp.o"

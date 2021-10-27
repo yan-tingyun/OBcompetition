@@ -93,7 +93,7 @@ RC Db::drop_table(const char *table_name){
     LOG_ERROR("drop table failed");
     return rc;
   }
-
+  delete opened_tables_[table_name];
   opened_tables_.erase(table_name);
   LOG_INFO("drop table success. table name=%s", table_name);
   return RC::SUCCESS;
