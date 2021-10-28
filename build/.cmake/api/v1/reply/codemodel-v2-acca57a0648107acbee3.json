@@ -1,0 +1,352 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						3,
+						6,
+						7
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-Debug-097dc4544caca2ad22b7.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10"
+					},
+					"projectIndex" : 0,
+					"source" : "."
+				},
+				{
+					"build" : "deps",
+					"childIndexes" : 
+					[
+						2
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-deps-Debug-9809b3fc864cc8f91ec2.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "deps"
+				},
+				{
+					"build" : "deps/common",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-deps.common-Debug-e7d3babd7a371cb440de.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 1,
+					"source" : "deps/common",
+					"targetIndexes" : 
+					[
+						3,
+						4
+					]
+				},
+				{
+					"build" : "src",
+					"childIndexes" : 
+					[
+						4,
+						5
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-src-Debug-b6cf2213fc5053b67c22.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 2,
+					"source" : "src"
+				},
+				{
+					"build" : "src/obclient",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-src.obclient-Debug-6f34795f134484395e96.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10"
+					},
+					"parentIndex" : 3,
+					"projectIndex" : 3,
+					"source" : "src/obclient",
+					"targetIndexes" : 
+					[
+						7
+					]
+				},
+				{
+					"build" : "src/observer",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-src.observer-Debug-052bd543df9372279ce3.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10"
+					},
+					"parentIndex" : 3,
+					"projectIndex" : 4,
+					"source" : "src/observer",
+					"targetIndexes" : 
+					[
+						8,
+						9
+					]
+				},
+				{
+					"build" : "unitest",
+					"jsonFile" : "directory-unitest-Debug-c3ed75076db61e429341.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 5,
+					"source" : "unitest",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						5,
+						6,
+						10,
+						11,
+						12
+					]
+				},
+				{
+					"build" : "test",
+					"jsonFile" : "directory-test-Debug-451c0598f41488bb20b9.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 6,
+					"source" : "test",
+					"targetIndexes" : 
+					[
+						2
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"childIndexes" : 
+					[
+						1,
+						2,
+						5,
+						6
+					],
+					"directoryIndexes" : 
+					[
+						0,
+						1
+					],
+					"name" : "minidb"
+				},
+				{
+					"directoryIndexes" : 
+					[
+						2
+					],
+					"name" : "common",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						3,
+						4
+					]
+				},
+				{
+					"childIndexes" : 
+					[
+						3,
+						4
+					],
+					"directoryIndexes" : 
+					[
+						3
+					],
+					"name" : "miniob",
+					"parentIndex" : 0
+				},
+				{
+					"directoryIndexes" : 
+					[
+						4
+					],
+					"name" : "obclient",
+					"parentIndex" : 2,
+					"targetIndexes" : 
+					[
+						7
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						5
+					],
+					"name" : "observer",
+					"parentIndex" : 2,
+					"targetIndexes" : 
+					[
+						8,
+						9
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						6
+					],
+					"name" : "unitest",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						5,
+						6,
+						10,
+						11,
+						12
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						7
+					],
+					"name" : "test",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						2
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 6,
+					"id" : "bitmap_test::@52cd600a4d0e1e8e952f",
+					"jsonFile" : "target-bitmap_test-Debug-1d01a4162a3d4ae389ad.json",
+					"name" : "bitmap_test",
+					"projectIndex" : 5
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "bp_manager_test::@52cd600a4d0e1e8e952f",
+					"jsonFile" : "target-bp_manager_test-Debug-26cede00e64f70f4f30c.json",
+					"name" : "bp_manager_test",
+					"projectIndex" : 5
+				},
+				{
+					"directoryIndex" : 7,
+					"id" : "client_performance_test::@36f028580bb02cc8272a",
+					"jsonFile" : "target-client_performance_test-Debug-9489b95185121eef3c61.json",
+					"name" : "client_performance_test",
+					"projectIndex" : 6
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "common::@6d45b4e2c634211afc81",
+					"jsonFile" : "target-common-Debug-f033724cc24814620545.json",
+					"name" : "common",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "common_static::@6d45b4e2c634211afc81",
+					"jsonFile" : "target-common_static-Debug-35af1afd863891656658.json",
+					"name" : "common_static",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "log_test::@52cd600a4d0e1e8e952f",
+					"jsonFile" : "target-log_test-Debug-1a70d91912a43df9f2ec.json",
+					"name" : "log_test",
+					"projectIndex" : 5
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "md5_test::@52cd600a4d0e1e8e952f",
+					"jsonFile" : "target-md5_test-Debug-640fc76d34a6d080f2ef.json",
+					"name" : "md5_test",
+					"projectIndex" : 5
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "obclient::@4196e604df7f482c3cc7",
+					"jsonFile" : "target-obclient-Debug-5cb93bce252fd056d8e2.json",
+					"name" : "obclient",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "observer::@4581bebf43805b95f013",
+					"jsonFile" : "target-observer-Debug-f02bdd37f1d06186f825.json",
+					"name" : "observer",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "observer_static::@4581bebf43805b95f013",
+					"jsonFile" : "target-observer_static-Debug-94fdbea66ec51ace77ab.json",
+					"name" : "observer_static",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "path_test::@52cd600a4d0e1e8e952f",
+					"jsonFile" : "target-path_test-Debug-d4ad716b4d65b5fe77da.json",
+					"name" : "path_test",
+					"projectIndex" : 5
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "pidfile_test::@52cd600a4d0e1e8e952f",
+					"jsonFile" : "target-pidfile_test-Debug-747f508f40de3b8cc5a7.json",
+					"name" : "pidfile_test",
+					"projectIndex" : 5
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "rc_test::@52cd600a4d0e1e8e952f",
+					"jsonFile" : "target-rc_test-Debug-629cadb7d581431c38cd.json",
+					"name" : "rc_test",
+					"projectIndex" : 5
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/qrstu/yty_folder2/OBCompetition/build",
+		"source" : "/home/qrstu/yty_folder2/OBCompetition"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 3
+	}
+}

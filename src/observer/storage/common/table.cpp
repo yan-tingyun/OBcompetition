@@ -28,6 +28,7 @@ See the Mulan PSL v2 for more details. */
 #include "storage/common/bplus_tree_index.h"
 #include "storage/trx/trx.h"
 
+#define is_leap_year(y) (((y) % 4  == 0 && (y) % 100 != 0) || (y) % 400 == 0)
 using namespace std;
 
 Table::Table() : 
@@ -304,13 +305,17 @@ RC Table::make_record(int value_num, const Value *values, char * &record_out) {
   for (int i = 0; i < value_num; i++) {
     const FieldMeta *field = table_meta_.field(i + normal_field_start_index);
     const Value &value = values[i];
+
+    // 增加日期字段的校验，若field type为日期字段但数据为char类型，则判断一下是否是日期格式
+    if(field->type() == 4 && value.type == 1 && is_date(value) == RC::SUCCESS)
+      continue;
+
     if (field->type() != value.type) {
       LOG_ERROR("Invalid value type. field name=%s, type=%d, but given=%d",
         field->name(), field->type(), value.type);
       return RC::SCHEMA_FIELD_TYPE_MISMATCH;
     }
   }
-
   // 复制所有字段的值
   int record_size = table_meta_.record_size();
   char *record = new char [record_size];
@@ -318,11 +323,93 @@ RC Table::make_record(int value_num, const Value *values, char * &record_out) {
   for (int i = 0; i < value_num; i++) {
     const FieldMeta *field = table_meta_.field(i + normal_field_start_index);
     const Value &value = values[i];
+
+    // 如果是日期类型，能运行到这里说明通过了合法性校验，则将字符串的值转为整数保存
+    if(field->type() == 4){
+      char *p = new char[16];
+      memcpy(p, value.data, 16);
+      string str = p;
+      int len = str.size();
+      int time_int[3];
+      for(int i = 0, j = 0; i < len; ++i){
+        int start = i;
+        while(i<len && str[i] != '-')
+          ++i;
+        time_int[j] = atoi((str.substr(start,i-start)).c_str()); 
+        ++j; 
+      }
+      int time_sec = calc_sec1970(time_int[0], time_int[1], time_int[2]);
+      memcpy(record + field->offset(), &time_sec, field->len());
+      continue;
+    }
+
     memcpy(record + field->offset(), value.data, field->len());
   }
 
   record_out = record;
   return RC::SUCCESS;
+}
+
+
+// author yty 21/10/27
+// check date type, if true than turn date time value to type of INT
+// check date illegal
+RC Table::is_date(const Value &value){
+  char *p = new char[16];
+  memcpy(p, value.data, 16);
+  string str = p;
+  vector<string> time;
+  int len = str.size();
+  for(int i = 0; i < len; ++i){
+    int start = i;
+    while(i<len && str[i] != '-')
+      ++i;
+    time.emplace_back(str.substr(start,i-start));  
+  }
+  len = time.size();
+  if(len != 3)
+    return RC::SCHEMA_FIELD_TYPE_MISMATCH;
+  int time_int[3];
+  for(int i = 0; i < 3; ++i){
+    for(auto &c : time[i]){
+      if(c-'0'>9)
+        return RC::SCHEMA_FIELD_TYPE_MISMATCH;
+    }
+    time_int[i] = atoi(time[i].c_str());
+  }
+
+  // 合法性校验
+  int day[13] = {0,31,29,31,30,31,30,31,31,30,31,30,31};
+  if((time_int[0] < 1970 || time_int[0] > 2038)
+      || (time_int[1] < 1 || time_int[1] > 12)
+      || (time_int[2] < 1 || time_int[2] > day[time_int[1]]))
+    return RC::SCHEMA_FIELD_VALUE_ILLEGAL;
+  if(!is_leap_year(time_int[0]) && time_int[2] > 28)
+    return RC::SCHEMA_FIELD_VALUE_ILLEGAL;
+
+  return RC::SUCCESS;
+}
+
+int Table::calc_sec1970(int year, int month, int day){
+  int sec = 0;
+  int days[13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+
+  for(int i = 1970; i < year; i++){
+    if(is_leap_year(i))
+        sec += 366 * 24 * 60 * 60;
+    else
+        sec += 365 * 24 * 60 * 60;
+  }
+
+  for(int i = 1; i < month; i++){
+      sec += days[i] * 24 * 60 * 60;
+      if(i == 2 && is_leap_year(year)){
+          sec += 24 * 60 * 60;
+      }
+  }
+
+  sec += (day - 1) * 24 * 60 * 60;
+  return sec;
 }
 
 RC Table::init_record_handler(const char *base_dir) {

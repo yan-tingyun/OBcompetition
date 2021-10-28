@@ -1,7 +1,9 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/md5_test.dir/md5_test.cpp.o"
-  "../bin/md5_test.pdb"
   "../bin/md5_test"
+  "../bin/md5_test.pdb"
+  "CMakeFiles/md5_test.dir/md5_test.cpp.o"
+  "CMakeFiles/md5_test.dir/md5_test.cpp.o.d"
+  "md5_test[1]_tests.cmake"
 )
 
 # Per-language clean rules from dependency scanning.

@@ -234,6 +234,11 @@ void TupleRecordConverter::add_record(const char *record) {
         tuple.add(s, strlen(s));
       }
       break;
+      case DATES: {
+        int value = *(int*)(record + field_meta->offset());// 现在当做int来处理
+        tuple.add(value);
+      }
+      break;
       default: {
         LOG_PANIC("Unsupported field type. type=%d", field_meta->type());
       }

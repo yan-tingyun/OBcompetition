@@ -95,6 +95,11 @@ private:
   RC init_record_handler(const char *base_dir);
   RC make_record(int value_num, const Value *values, char * &record_out);
 
+  // check date type
+  // 如果是日期类型则直接将日期转化为int类型
+  RC is_date(const Value &value);
+  int calc_sec1970(int year, int month, int day);
+
 private:
   Index *find_index(const char *index_name) const;
 
