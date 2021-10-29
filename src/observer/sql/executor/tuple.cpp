@@ -16,6 +16,9 @@ See the Mulan PSL v2 for more details. */
 #include "storage/common/table.h"
 #include "common/log/log.h"
 
+#define is_leap_year(y) (((y) % 4  == 0 && (y) % 100 != 0) || (y) % 400 == 0)
+using namespace std;
+
 Tuple::Tuple(const Tuple &other) {
   LOG_PANIC("Copy constructor of tuple is not supported");
   exit(1);
@@ -235,8 +238,42 @@ void TupleRecordConverter::add_record(const char *record) {
       }
       break;
       case DATES: {
-        int value = *(int*)(record + field_meta->offset());// 现在当做int来处理
-        tuple.add(value);
+        // value 为距离1970-01-01年的秒数
+        // 需要转换为YYYY-mm-dd的格式，用0填充不足位
+        int value = *(int*)(record + field_meta->offset());
+        int sec = 0;
+        int days[13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+        int year = 1970;
+        while(sec<=value){
+          if(is_leap_year(year))
+            sec += 366 * 24 * 60 * 60;
+          else
+            sec += 365 * 24 * 60 * 60;
+          ++year;
+        }
+        --year;
+        if(is_leap_year(year))
+          sec -= 366 * 24 * 60 * 60;
+        else
+          sec -= 365 * 24 * 60 * 60;
+        int month = 1;
+        while(sec <= value){
+          sec += days[month] * 24 * 60 * 60;
+          if(month == 2 && is_leap_year(year)){
+              sec += 24 * 60 * 60;
+          }
+          ++month;
+        }
+        --month;
+        sec -= days[month] * 24 * 60 * 60;
+        if(month == 2 && is_leap_year(year)){
+            sec -= 24 * 60 * 60;
+        }
+        int day = (value-sec) / 86400 + 1;
+        string timestamp = to_string(year) + "-" + 
+                          ((to_string(month)).size() > 1 ? to_string(month) : "0" + to_string(month))
+                          + "-" + ((to_string(day)).size() > 1 ? to_string(day) : "0" + to_string(day));
+        tuple.add(timestamp.c_str(), timestamp.size());
       }
       break;
       default: {

@@ -339,6 +339,7 @@ RC Table::make_record(int value_num, const Value *values, char * &record_out) {
         ++j; 
       }
       int time_sec = calc_sec1970(time_int[0], time_int[1], time_int[2]);
+      delete p;
       memcpy(record + field->offset(), &time_sec, field->len());
       continue;
     }
@@ -367,6 +368,7 @@ RC Table::is_date(const Value &value){
     time.emplace_back(str.substr(start,i-start));  
   }
   len = time.size();
+  delete p;
   if(len != 3)
     return RC::SCHEMA_FIELD_TYPE_MISMATCH;
   int time_int[3];
@@ -384,7 +386,7 @@ RC Table::is_date(const Value &value){
       || (time_int[1] < 1 || time_int[1] > 12)
       || (time_int[2] < 1 || time_int[2] > day[time_int[1]]))
     return RC::SCHEMA_FIELD_VALUE_ILLEGAL;
-  if(!is_leap_year(time_int[0]) && time_int[2] > 28)
+  if(!is_leap_year(time_int[0]) && time_int[1]==2 && time_int[2] > 28)
     return RC::SCHEMA_FIELD_VALUE_ILLEGAL;
 
   return RC::SUCCESS;
@@ -707,14 +709,37 @@ RC Table::update_record(Trx *trx, Record *record, const char *attribute_name, co
       return RC::SCHEMA_FIELD_MISSING;
     }
 
-    if (field->type() != value->type) {
+    bool flag_date_type = false;
+
+    if(field->type() == 4 && value->type == 1){
+      RC rc = is_date(*value);
+      if(rc != RC::SUCCESS)
+        return rc;
+      
+      flag_date_type = true;
+      char *p = new char[16];
+      memcpy(p, value->data, 16);
+      string str = p;
+      int len = str.size();
+      int time_int[3];
+      for(int i = 0, j = 0; i < len; ++i){
+        int start = i;
+        while(i<len && str[i] != '-')
+          ++i;
+        time_int[j] = atoi((str.substr(start,i-start)).c_str()); 
+        ++j; 
+      }
+      int time_sec = calc_sec1970(time_int[0], time_int[1], time_int[2]);
+      delete p;
+      memcpy(record->data + field->offset(), &time_sec, field->len());
+    }else if (field->type() != value->type) {
       LOG_ERROR("Invalid value type. field name=%s, type=%d, but given=%d",
         field->name(), field->type(), value->type);
       return RC::SCHEMA_FIELD_TYPE_MISMATCH;
     }
 
-
-    memcpy(record->data + field->offset(), value->data, field->len());
+    if(!flag_date_type)
+      memcpy(record->data + field->offset(), value->data, field->len());
     
 
     rc = record_handler_->update_record(record);

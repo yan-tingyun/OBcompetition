@@ -50,6 +50,12 @@ public:
 
   virtual bool filter(const Record &rec) const;
 
+
+private:
+  // 日期校验
+  RC is_date(void *v);
+  int calc_sec1970(int year, int month, int day);
+
 public:
   const ConDesc &left() const {
     return left_;

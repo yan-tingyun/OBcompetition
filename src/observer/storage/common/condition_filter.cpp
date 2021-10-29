@@ -18,6 +18,8 @@ See the Mulan PSL v2 for more details. */
 #include "common/log/log.h"
 #include "storage/common/table.h"
 
+#define is_leap_year(y) (((y) % 4  == 0 && (y) % 100 != 0) || (y) % 400 == 0)
+using namespace std;
 using namespace common;
 
 ConditionFilter::~ConditionFilter()
@@ -40,7 +42,7 @@ DefaultConditionFilter::~DefaultConditionFilter()
 
 RC DefaultConditionFilter::init(const ConDesc &left, const ConDesc &right, AttrType attr_type, CompOp comp_op)
 {
-  if (attr_type < CHARS || attr_type > FLOATS) {
+  if (attr_type < CHARS || attr_type > DATES) {
     LOG_ERROR("Invalid condition with unsupported attribute type: %d", attr_type);
     return RC::INVALID_ARGUMENT;
   }
@@ -116,11 +118,127 @@ RC DefaultConditionFilter::init(Table &table, const Condition &condition)
   //  }
   // NOTE：这里没有实现不同类型的数据比较，比如整数跟浮点数之间的对比
   // 但是选手们还是要实现。这个功能在预选赛中会出现
+
+
+  // 校验是否为日期属性，若为日期属性则将value值转为int
+  if((type_left == DATES && type_right == CHARS)|| (type_right == DATES && type_left == CHARS)){
+    if(type_left == DATES){
+      RC rc = is_date(right.value);
+      if(rc != RC::SUCCESS)
+        return rc;
+
+      char *p = new char[16];
+      memcpy(p, right.value, 16);
+      string str = p;
+      int len = str.size();
+      int time_int[3];
+      for(int i = 0, j = 0; i < len; ++i){
+        int start = i;
+        while(i<len && str[i] != '-')
+          ++i;
+        time_int[j] = atoi((str.substr(start,i-start)).c_str()); 
+        ++j; 
+      }
+      int time_sec = calc_sec1970(time_int[0], time_int[1], time_int[2]);
+      delete p;
+      right.value = &time_sec;
+      type_right = DATES;
+
+      return init(left, right, type_left, condition.comp);
+    }else{
+
+      RC rc = is_date(left.value);
+      if(rc != RC::SUCCESS)
+        return rc;
+
+      char *p = new char[16];
+      memcpy(p, left.value, 16);
+      string str = p;
+      int len = str.size();
+      int time_int[3];
+      for(int i = 0, j = 0; i < len; ++i){
+        int start = i;
+        while(i<len && str[i] != '-')
+          ++i;
+        time_int[j] = atoi((str.substr(start,i-start)).c_str()); 
+        ++j; 
+      }
+      int time_sec = calc_sec1970(time_int[0], time_int[1], time_int[2]);
+      delete p;
+      left.value = &time_sec;
+      type_left = DATES;
+
+
+      return init(left, right, type_left, condition.comp);
+    }
+  }
+
+
+
   if (type_left != type_right) {
     return RC::SCHEMA_FIELD_TYPE_MISMATCH;
   }
 
   return init(left, right, type_left, condition.comp);
+}
+
+RC DefaultConditionFilter::is_date(void *v){
+  char *p = new char[16];
+  memcpy(p, v, 16);
+  string str = p;
+  vector<string> time;
+  int len = str.size();
+  for(int i = 0; i < len; ++i){
+    int start = i;
+    while(i<len && str[i] != '-')
+      ++i;
+    time.emplace_back(str.substr(start,i-start));  
+  }
+  delete p;
+  len = time.size();
+  if(len != 3)
+    return RC::SCHEMA_FIELD_TYPE_MISMATCH;
+  int time_int[3];
+  for(int i = 0; i < 3; ++i){
+    for(auto &c : time[i]){
+      if(c-'0'>9)
+        return RC::SCHEMA_FIELD_TYPE_MISMATCH;
+    }
+    time_int[i] = atoi(time[i].c_str());
+  }
+
+  // 合法性校验
+  int day[13] = {0,31,29,31,30,31,30,31,31,30,31,30,31};
+  if((time_int[0] < 1970 || time_int[0] > 2038)
+      || (time_int[1] < 1 || time_int[1] > 12)
+      || (time_int[2] < 1 || time_int[2] > day[time_int[1]]))
+    return RC::SCHEMA_FIELD_VALUE_ILLEGAL;
+  if(!is_leap_year(time_int[0]) && time_int[1] == 2 && time_int[2] > 28)
+    return RC::SCHEMA_FIELD_VALUE_ILLEGAL;
+
+  return RC::SUCCESS;
+}
+
+int DefaultConditionFilter::calc_sec1970(int year, int month, int day){
+  int sec = 0;
+  int days[13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+
+  for(int i = 1970; i < year; i++){
+    if(is_leap_year(i))
+        sec += 366 * 24 * 60 * 60;
+    else
+        sec += 365 * 24 * 60 * 60;
+  }
+
+  for(int i = 1; i < month; i++){
+      sec += days[i] * 24 * 60 * 60;
+      if(i == 2 && is_leap_year(year)){
+          sec += 24 * 60 * 60;
+      }
+  }
+
+  sec += (day - 1) * 24 * 60 * 60;
+  return sec;
 }
 
 bool DefaultConditionFilter::filter(const Record &rec) const
@@ -157,6 +275,13 @@ bool DefaultConditionFilter::filter(const Record &rec) const
       float left = *(float *)left_value;
       float right = *(float *)right_value;
       cmp_result = (int)(left - right);
+    } break;
+    case DATES: {
+      // 没有考虑大小端问题
+      // 对int和float，要考虑字节对齐问题,有些平台下直接转换可能会跪
+      int left = *(int *)left_value;
+      int right = *(int *)right_value;
+      cmp_result = left - right;
     } break;
     default: {
     }
