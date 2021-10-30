@@ -74,6 +74,8 @@ private:
   ConDesc  right_;
   AttrType attr_type_ = UNDEFINED;
   CompOp   comp_op_ = NO_OP;
+  // 记录日期类型数据转换为int类型后的值，因为要将这个变量的值随着对象生存周期保存
+  int time_sec; 
 };
 
 class CompositeConditionFilter : public ConditionFilter {

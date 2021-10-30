@@ -54,6 +54,7 @@ RC DefaultConditionFilter::init(const ConDesc &left, const ConDesc &right, AttrT
 
   left_ = left;
   right_ = right;
+
   attr_type_ = attr_type;
   comp_op_ = comp_op;
   return RC::SUCCESS;
@@ -139,9 +140,9 @@ RC DefaultConditionFilter::init(Table &table, const Condition &condition)
         time_int[j] = atoi((str.substr(start,i-start)).c_str()); 
         ++j; 
       }
-      int time_sec = calc_sec1970(time_int[0], time_int[1], time_int[2]);
+      this->time_sec = calc_sec1970(time_int[0], time_int[1], time_int[2]);
       delete p;
-      right.value = &time_sec;
+      right.value = &this->time_sec;
       type_right = DATES;
 
       return init(left, right, type_left, condition.comp);
@@ -163,11 +164,10 @@ RC DefaultConditionFilter::init(Table &table, const Condition &condition)
         time_int[j] = atoi((str.substr(start,i-start)).c_str()); 
         ++j; 
       }
-      int time_sec = calc_sec1970(time_int[0], time_int[1], time_int[2]);
+      this->time_sec = calc_sec1970(time_int[0], time_int[1], time_int[2]);
       delete p;
-      left.value = &time_sec;
+      left.value = &this->time_sec;
       type_left = DATES;
-
 
       return init(left, right, type_left, condition.comp);
     }
@@ -257,6 +257,7 @@ bool DefaultConditionFilter::filter(const Record &rec) const
   } else {
     right_value = (char *)right_.value;
   }
+
 
   int cmp_result = 0;
   switch (attr_type_) {
