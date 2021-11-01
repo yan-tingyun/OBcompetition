@@ -17,18 +17,19 @@
 		},
 		{
 			"len" : 4,
-			"name" : "time",
+			"name" : "name",
 			"offset" : 8,
-			"type" : "dates",
+			"type" : "chars",
+			"visible" : true
+		},
+		{
+			"len" : 4,
+			"name" : "age",
+			"offset" : 12,
+			"type" : "ints",
 			"visible" : true
 		}
 	],
-	"indexes" : 
-	[
-		{
-			"field_name" : "time",
-			"name" : "it"
-		}
-	],
+	"indexes" : null,
 	"table_name" : "a"
 }

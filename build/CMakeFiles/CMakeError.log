@@ -1,60 +1,51 @@
-Performing C SOURCE FILE Test CMAKE_HAVE_LIBC_PTHREAD failed with the following output:
+Determining if the pthread_create exist failed with the following output:
 Change Dir: /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles/CMakeTmp
 
-Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_9a3c8/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_9a3c8.dir/build.make CMakeFiles/cmTC_9a3c8.dir/build
+Run Build Command:"/usr/bin/gmake" "cmTC_f1479/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_f1479.dir/build.make CMakeFiles/cmTC_f1479.dir/build
 gmake[1]: 进入目录“/home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles/CMakeTmp”
-Building C object CMakeFiles/cmTC_9a3c8.dir/src.c.o
-/bin/x86_64-linux-gnu-gcc-9 -DCMAKE_HAVE_LIBC_PTHREAD  -Wall -DCMAKE_EXPORT_COMPILE_COMMANDS=1  -O2 -g   -o CMakeFiles/cmTC_9a3c8.dir/src.c.o -c /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles/CMakeTmp/src.c
-Linking C executable cmTC_9a3c8
-/home/qrstu/.local/lib/python3.8/site-packages/cmake/data/bin/cmake -E cmake_link_script CMakeFiles/cmTC_9a3c8.dir/link.txt --verbose=1
-/bin/x86_64-linux-gnu-gcc-9  -Wall -DCMAKE_EXPORT_COMPILE_COMMANDS=1  -O2 -g   CMakeFiles/cmTC_9a3c8.dir/src.c.o -o cmTC_9a3c8 
-/usr/bin/ld: CMakeFiles/cmTC_9a3c8.dir/src.c.o: in function `main':
-/home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles/CMakeTmp/src.c:11: undefined reference to `pthread_create'
-/usr/bin/ld: /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles/CMakeTmp/src.c:12: undefined reference to `pthread_detach'
-/usr/bin/ld: /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles/CMakeTmp/src.c:13: undefined reference to `pthread_cancel'
-/usr/bin/ld: /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles/CMakeTmp/src.c:14: undefined reference to `pthread_join'
+Building C object CMakeFiles/cmTC_f1479.dir/CheckSymbolExists.c.o
+/usr/bin/cc   -Wall -DCMAKE_EXPORT_COMPILE_COMMANDS=1  -O2 -g     -o CMakeFiles/cmTC_f1479.dir/CheckSymbolExists.c.o   -c /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_f1479
+/home/qrstu/anaconda3/lib/python3.7/site-packages/cmake/data/bin/cmake -E cmake_link_script CMakeFiles/cmTC_f1479.dir/link.txt --verbose=1
+/usr/bin/cc  -Wall -DCMAKE_EXPORT_COMPILE_COMMANDS=1  -O2 -g      CMakeFiles/cmTC_f1479.dir/CheckSymbolExists.c.o  -o cmTC_f1479 
+/usr/bin/ld: CMakeFiles/cmTC_f1479.dir/CheckSymbolExists.c.o: in function `main':
+/home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:8: undefined reference to `pthread_create'
 collect2: error: ld returned 1 exit status
-gmake[1]: *** [CMakeFiles/cmTC_9a3c8.dir/build.make:99：cmTC_9a3c8] 错误 1
+gmake[1]: *** [CMakeFiles/cmTC_f1479.dir/build.make:87：cmTC_f1479] 错误 1
 gmake[1]: 离开目录“/home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles/CMakeTmp”
-gmake: *** [Makefile:127：cmTC_9a3c8/fast] 错误 2
+gmake: *** [Makefile:126：cmTC_f1479/fast] 错误 2
 
-
-Source file was:
+File /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
 #include <pthread.h>
 
-static void* test_func(void* data)
+int main(int argc, char** argv)
 {
-  return data;
-}
-
-int main(void)
-{
-  pthread_t thread;
-  pthread_create(&thread, NULL, test_func, NULL);
-  pthread_detach(thread);
-  pthread_cancel(thread);
-  pthread_join(thread, NULL);
-  pthread_atfork(NULL, NULL, NULL);
-  pthread_exit(NULL);
-
+  (void)argv;
+#ifndef pthread_create
+  return ((int*)(&pthread_create))[argc];
+#else
+  (void)argc;
   return 0;
+#endif
 }
 
 Determining if the function pthread_create exists in the pthreads failed with the following output:
 Change Dir: /home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles/CMakeTmp
 
-Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_bf60d/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_bf60d.dir/build.make CMakeFiles/cmTC_bf60d.dir/build
+Run Build Command:"/usr/bin/gmake" "cmTC_6d7b4/fast"
+/usr/bin/gmake -f CMakeFiles/cmTC_6d7b4.dir/build.make CMakeFiles/cmTC_6d7b4.dir/build
 gmake[1]: 进入目录“/home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles/CMakeTmp”
-Building C object CMakeFiles/cmTC_bf60d.dir/CheckFunctionExists.c.o
-/bin/x86_64-linux-gnu-gcc-9   -Wall -DCMAKE_EXPORT_COMPILE_COMMANDS=1  -O2 -g  -DCHECK_FUNCTION_EXISTS=pthread_create -o CMakeFiles/cmTC_bf60d.dir/CheckFunctionExists.c.o -c /home/qrstu/.local/lib/python3.8/site-packages/cmake/data/share/cmake-3.21/Modules/CheckFunctionExists.c
-Linking C executable cmTC_bf60d
-/home/qrstu/.local/lib/python3.8/site-packages/cmake/data/bin/cmake -E cmake_link_script CMakeFiles/cmTC_bf60d.dir/link.txt --verbose=1
-/bin/x86_64-linux-gnu-gcc-9  -Wall -DCMAKE_EXPORT_COMPILE_COMMANDS=1  -O2 -g  -DCHECK_FUNCTION_EXISTS=pthread_create CMakeFiles/cmTC_bf60d.dir/CheckFunctionExists.c.o -o cmTC_bf60d  -lpthreads 
+Building C object CMakeFiles/cmTC_6d7b4.dir/CheckFunctionExists.c.o
+/usr/bin/cc   -Wall -DCMAKE_EXPORT_COMPILE_COMMANDS=1  -O2 -g  -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_6d7b4.dir/CheckFunctionExists.c.o   -c /home/qrstu/anaconda3/lib/python3.7/site-packages/cmake/data/share/cmake-3.11/Modules/CheckFunctionExists.c
+Linking C executable cmTC_6d7b4
+/home/qrstu/anaconda3/lib/python3.7/site-packages/cmake/data/bin/cmake -E cmake_link_script CMakeFiles/cmTC_6d7b4.dir/link.txt --verbose=1
+/usr/bin/cc  -Wall -DCMAKE_EXPORT_COMPILE_COMMANDS=1  -O2 -g  -DCHECK_FUNCTION_EXISTS=pthread_create    CMakeFiles/cmTC_6d7b4.dir/CheckFunctionExists.c.o  -o cmTC_6d7b4 -lpthreads 
 /usr/bin/ld: 找不到 -lpthreads
 collect2: error: ld returned 1 exit status
-gmake[1]: *** [CMakeFiles/cmTC_bf60d.dir/build.make:99：cmTC_bf60d] 错误 1
+gmake[1]: *** [CMakeFiles/cmTC_6d7b4.dir/build.make:87：cmTC_6d7b4] 错误 1
 gmake[1]: 离开目录“/home/qrstu/yty_folder2/OBCompetition/build/CMakeFiles/CMakeTmp”
-gmake: *** [Makefile:127：cmTC_bf60d/fast] 错误 2
-
+gmake: *** [Makefile:126：cmTC_6d7b4/fast] 错误 2
 
 

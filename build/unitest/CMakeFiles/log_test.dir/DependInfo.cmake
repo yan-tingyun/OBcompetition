@@ -1,14 +1,25 @@
-
-# Consider dependencies only in project.
-set(CMAKE_DEPENDS_IN_PROJECT_ONLY OFF)
-
 # The set of languages for which implicit dependencies are needed:
 set(CMAKE_DEPENDS_LANGUAGES
+  "CXX"
+  )
+# The set of files for implicit dependencies of each language:
+set(CMAKE_DEPENDS_CHECK_CXX
+  "/home/qrstu/yty_folder2/OBCompetition/unitest/log_test.cpp" "/home/qrstu/yty_folder2/OBCompetition/build/unitest/CMakeFiles/log_test.dir/log_test.cpp.o"
+  )
+set(CMAKE_CXX_COMPILER_ID "GNU")
+
+# Preprocessor definitions for this target.
+set(CMAKE_TARGET_DEFINITIONS_CXX
+  "LINUX"
+  "UNIX"
   )
 
-# The set of dependency files which are needed:
-set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/home/qrstu/yty_folder2/OBCompetition/unitest/log_test.cpp" "unitest/CMakeFiles/log_test.dir/log_test.cpp.o" "gcc" "unitest/CMakeFiles/log_test.dir/log_test.cpp.o.d"
+# The include file search paths:
+set(CMAKE_CXX_TARGET_INCLUDE_PATH
+  "../unitest/."
+  "../unitest/../deps"
+  "../unitest/../src/observer"
+  "/usr/local/include"
   )
 
 # Targets to which this target links.
