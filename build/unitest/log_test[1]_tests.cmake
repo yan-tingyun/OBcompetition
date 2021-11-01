@@ -1,5 +1,0 @@
-add_test( checkRotateTest.CheckRoateTest /home/qrstu/yty_folder2/OBCompetition/build/bin/log_test [==[--gtest_filter=checkRotateTest.CheckRoateTest]==] --gtest_also_run_disabled_tests)
-set_tests_properties( checkRotateTest.CheckRoateTest PROPERTIES WORKING_DIRECTORY /home/qrstu/yty_folder2/OBCompetition/build/unitest)
-add_test( testEnableTest.CheckEnableTest /home/qrstu/yty_folder2/OBCompetition/build/bin/log_test [==[--gtest_filter=testEnableTest.CheckEnableTest]==] --gtest_also_run_disabled_tests)
-set_tests_properties( testEnableTest.CheckEnableTest PROPERTIES WORKING_DIRECTORY /home/qrstu/yty_folder2/OBCompetition/build/unitest)
-set( log_test_TESTS checkRotateTest.CheckRoateTest testEnableTest.CheckEnableTest)

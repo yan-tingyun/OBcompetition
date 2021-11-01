@@ -23,12 +23,6 @@ See the Mulan PSL v2 for more details. */
 #define MAX_ERROR_MESSAGE 20
 #define MAX_DATA 50
 
-//属性结构体
-typedef struct {
-  char *relation_name;   // relation name (may be NULL) 表名
-  char *attribute_name;  // attribute name              属性名
-} RelAttr;
-
 typedef enum {
   EQUAL_TO,     //"="     0
   LESS_EQUAL,   //"<="    1
@@ -41,6 +35,15 @@ typedef enum {
 
 //属性值类型
 typedef enum { UNDEFINED, CHARS, INTS, FLOATS, DATES} AttrType;
+
+// 聚合函数类型
+typedef enum { NOTAGG, AVG, MAX, MIN, COUNT} AggreType;
+
+//属性结构体
+typedef struct {
+  char *relation_name;   // relation name (may be NULL) 表名
+  char *attribute_name;  // attribute name              属性名
+} RelAttr;
 
 //属性值
 typedef struct _Value {
@@ -68,6 +71,8 @@ typedef struct {
   char *    relations[MAX_NUM];     // relations in From clause
   size_t    condition_num;          // Length of conditions in Where clause
   Condition conditions[MAX_NUM];    // conditions in Where clause
+
+  AggreType aggre_type[MAX_NUM];    // aggregate function type
 } Selects;
 
 // struct of insert
@@ -199,6 +204,7 @@ void selects_init(Selects *selects, ...);
 void selects_append_attribute(Selects *selects, RelAttr *rel_attr);
 void selects_append_relation(Selects *selects, const char *relation_name);
 void selects_append_conditions(Selects *selects, Condition conditions[], size_t condition_num);
+void selects_append_aggretype(Selects *selects, AggreType aggre_type);
 void selects_destroy(Selects *selects);
 
 void inserts_init(Inserts *inserts, const char *relation_name, Value values[], size_t value_num);

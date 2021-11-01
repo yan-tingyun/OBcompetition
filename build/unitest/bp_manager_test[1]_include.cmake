@@ -1,5 +1,0 @@
-if(EXISTS "/home/qrstu/yty_folder2/OBCompetition/build/unitest/bp_manager_test[1]_tests.cmake")
-  include("/home/qrstu/yty_folder2/OBCompetition/build/unitest/bp_manager_test[1]_tests.cmake")
-else()
-  add_test(bp_manager_test_NOT_BUILT bp_manager_test_NOT_BUILT)
-endif()

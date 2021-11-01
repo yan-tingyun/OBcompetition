@@ -106,6 +106,10 @@ ParserContext *get_context(yyscan_t scanner)
         LE
         GE
         NE
+		MAX
+		MIN
+		COUNT
+		AVG
 
 %union {
   struct _Attr *attr;
@@ -370,29 +374,104 @@ select:				/*  select 语句的语法解析树*/
 			CONTEXT->value_length = 0;
 	}
 	;
-
+/* author yty 21/11/1 implement of aggregate function */
 select_attr:
     STAR {  
 			RelAttr attr;
 			relation_attr_init(&attr, NULL, "*");
+			selects_append_aggretype(&CONTEXT->ssql->sstr.selection, NOTAGG);
 			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
 		}
     | ID attr_list {
 			RelAttr attr;
 			relation_attr_init(&attr, NULL, $1);
+			selects_append_aggretype(&CONTEXT->ssql->sstr.selection, NOTAGG);
 			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
 		}
   	| ID DOT ID attr_list {
 			RelAttr attr;
 			relation_attr_init(&attr, $1, $3);
+			selects_append_aggretype(&CONTEXT->ssql->sstr.selection, NOTAGG);
 			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
 		}
+	| AVG LBRACE ID RBRACE aggre_list {
+		/* avg function */
+		RelAttr attr;
+		relation_attr_init(&attr, NULL, $3);
+		selects_append_aggretype(&CONTEXT->ssql->sstr.selection, AVG);
+		selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
+	}
+	| MAX LBRACE ID RBRACE aggre_list {
+		/*max function*/
+		RelAttr attr;
+		relation_attr_init(&attr, NULL, $3);
+		selects_append_aggretype(&CONTEXT->ssql->sstr.selection, MAX);
+		selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
+	}
+	| MIN LBRACE ID RBRACE aggre_list {
+		/*min function*/
+		RelAttr attr;
+		relation_attr_init(&attr, NULL, $3);
+		selects_append_aggretype(&CONTEXT->ssql->sstr.selection, MIN);
+		selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
+	}
+	| COUNT LBRACE aggre_col RBRACE aggre_list {
+
+	}
     ;
+aggre_list:
+	/*empty*/
+	| COMMA AVG LBRACE ID RBRACE aggre_list {
+		/* avg function */
+		RelAttr attr;
+		relation_attr_init(&attr, NULL, $3);
+		selects_append_aggretype(&CONTEXT->ssql->sstr.selection, AVG);
+		selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
+	}
+	| COMMA MAX LBRACE ID RBRACE aggre_list {
+		/*max function*/
+		RelAttr attr;
+		relation_attr_init(&attr, NULL, $3);
+		selects_append_aggretype(&CONTEXT->ssql->sstr.selection, MAX);
+		selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
+	}
+	| COMMA MIN LBRACE ID RBRACE aggre_list {
+		/*min function*/
+		RelAttr attr;
+		relation_attr_init(&attr, NULL, $3);
+		selects_append_aggretype(&CONTEXT->ssql->sstr.selection, MIN);
+		selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
+	}
+	| COMMA COUNT LBRACE aggre_col RBRACE aggre_list {
+
+	}
+    ;
+aggre_col:
+	STAR {
+		RelAttr attr;
+		relation_attr_init(&attr, NULL, "*");
+		selects_append_aggretype(&CONTEXT->ssql->sstr.selection, COUNT);
+		selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
+	}
+	| ID {
+		RelAttr attr;
+		relation_attr_init(&attr, NULL, $1);
+		selects_append_aggretype(&CONTEXT->ssql->sstr.selection, COUNT);
+		selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
+	} 
+	| NUMBER {
+		RelAttr attr;
+		relation_attr_init(&attr, NULL, NULL);
+		selects_append_aggretype(&CONTEXT->ssql->sstr.selection, COUNT);
+		selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
+	}
+	;
 attr_list:
     /* empty */
     | COMMA ID attr_list {
 			RelAttr attr;
 			relation_attr_init(&attr, NULL, $2);
+			selects_append_aggretype(&CONTEXT->ssql->sstr.selection, NOTAGG);
 			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
      	  // CONTEXT->ssql->sstr.selection.attributes[CONTEXT->select_length].relation_name = NULL;
         // CONTEXT->ssql->sstr.selection.attributes[CONTEXT->select_length++].attribute_name=$2;
@@ -400,6 +479,7 @@ attr_list:
     | COMMA ID DOT ID attr_list {
 			RelAttr attr;
 			relation_attr_init(&attr, $2, $4);
+			selects_append_aggretype(&CONTEXT->ssql->sstr.selection, NOTAGG);
 			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
         // CONTEXT->ssql->sstr.selection.attributes[CONTEXT->select_length].attribute_name=$4;
         // CONTEXT->ssql->sstr.selection.attributes[CONTEXT->select_length++].relation_name=$2;
