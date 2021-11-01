@@ -74,7 +74,9 @@ typedef struct {
 typedef struct {
   char *relation_name;    // Relation to insert into
   size_t value_num;       // Length of values
-  Value values[MAX_NUM];  // values to insert
+  int record[MAX_NUM];  // length of each record
+  size_t record_num;
+  Value values[MAX_NUM*MAX_NUM];  // values to insert
 } Inserts;
 
 // struct of delete
@@ -183,6 +185,7 @@ void relation_attr_destroy(RelAttr *relation_attr);
 void value_init_integer(Value *value, int v);
 void value_init_float(Value *value, float v);
 void value_init_string(Value *value, const char *v);
+void value_init_datetime(Value *value, int v);
 void value_destroy(Value *value);
 
 void condition_init(Condition *condition, CompOp comp, int left_is_attr, RelAttr *left_attr, Value *left_value,
@@ -200,6 +203,7 @@ void selects_destroy(Selects *selects);
 
 void inserts_init(Inserts *inserts, const char *relation_name, Value values[], size_t value_num);
 void inserts_destroy(Inserts *inserts);
+void inserts_record_length(Inserts *inserts, size_t record_num, size_t record_pos);
 
 void deletes_init_relation(Deletes *deletes, const char *relation_name);
 void deletes_set_conditions(Deletes *deletes, Condition conditions[], size_t condition_num);
@@ -233,6 +237,7 @@ void query_init(Query *query);
 Query *query_create();  // create and init
 void query_reset(Query *query);
 void query_destroy(Query *query);  // reset and delete
+
 
 #ifdef __cplusplus
 }

@@ -54,7 +54,7 @@ public:
    */
   RC open(const char *meta_file, const char *base_dir);
   
-  RC insert_record(Trx *trx, int value_num, const Value *values);
+  RC insert_record(Trx *trx, int value_num, const Value *values, int record_num, const int record_pos[]);
   RC update_record(Trx *trx, const char *attribute_name, const Value *value, ConditionFilter *filter, int *updated_count);
   RC delete_record(Trx *trx, ConditionFilter *filter, int *deleted_count);
 

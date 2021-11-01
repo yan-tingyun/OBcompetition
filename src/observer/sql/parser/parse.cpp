@@ -17,6 +17,8 @@ See the Mulan PSL v2 for more details. */
 #include "rc.h"
 #include "common/log/log.h"
 
+using namespace std;
+
 RC parse(char *st, Query *sqln);
 
 #ifdef __cplusplus
@@ -51,6 +53,11 @@ void value_init_float(Value *value, float v) {
 void value_init_string(Value *value, const char *v) {
   value->type = CHARS;
   value->data = strdup(v);
+}
+void value_init_datetime(Value *value, int v) {
+  value->type = DATES;
+  value->data = malloc(sizeof(v));
+  memcpy(value->data, &v, sizeof(v));
 }
 void value_destroy(Value *value) {
   value->type = UNDEFINED;
@@ -150,6 +157,12 @@ void inserts_destroy(Inserts *inserts) {
     value_destroy(&inserts->values[i]);
   }
   inserts->value_num = 0;
+  inserts->record_num = 0;
+}
+
+void inserts_record_length(Inserts *inserts, size_t record_num, size_t record_pos){
+  inserts->record[record_num] = record_pos;
+  inserts->record_num = record_num + 1;
 }
 
 void deletes_init_relation(Deletes *deletes, const char *relation_name) {

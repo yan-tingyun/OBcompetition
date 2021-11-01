@@ -266,24 +266,52 @@ RC Table::insert_record(Trx *trx, Record *record) {
   }
   return rc;
 }
-RC Table::insert_record(Trx *trx, int value_num, const Value *values) {
-  if (value_num <= 0 || nullptr == values ) {
-    LOG_ERROR("Invalid argument. value num=%d, values=%p", value_num, values);
+
+// Author yty 21/10/31 
+// update function insert record to support insert multiple value into table
+RC Table::insert_record(Trx *trx, int value_num, const Value *values, int record_num, const int record_pos[]) {
+  if (record_num <= 0 || nullptr == values ) {
+    LOG_ERROR("Invalid argument. record num=%d, values=%p", record_num, values);
     return RC::INVALID_ARGUMENT;
   }
+  RC rc = RC::SUCCESS;
+  // 思路：插入多条记录、需要对每条记录是否合法做判断，只要有一条记录不合法则rollback commit， 并且需要一并删除索引
+  
+  int start_pos = 0;
 
-  char *record_data;
-  RC rc = make_record(value_num, values, record_data);
-  if (rc != RC::SUCCESS) {
-    LOG_ERROR("Failed to create a record. rc=%d:%s", rc, strrc(rc));
-    return rc;
+  for(int i = 0; i < record_num; ++i){
+    // 对于每条记录来讲，value长度为 [start_pos - record_pos[i]) ,然后更新start_pos为record_pos[i]
+    int single_record_len = record_pos[i] - start_pos;
+
+    if (single_record_len <= 0 || nullptr == values ) {
+      LOG_ERROR("Invalid argument. value num=%d, values=%p", single_record_len, values);
+      return RC::INVALID_ARGUMENT;
+    }
+
+    Value record_val[single_record_len];
+    for(int pos = 0; pos < single_record_len; ++pos)
+      record_val[pos] = values[start_pos+pos];
+    
+
+    char *record_data;
+    rc = make_record(single_record_len, record_val, record_data);
+    if (rc != RC::SUCCESS) {
+      LOG_ERROR("Failed to create a record. rc=%d:%s", rc, strrc(rc));
+      return rc;
+    }
+
+    Record record;
+    record.data = record_data;
+    // record.valid = true;
+    rc = insert_record(trx, &record);
+    delete[] record_data;
+
+    if(rc != RC::SUCCESS)
+      return rc;
+
+    start_pos = record_pos[i];
   }
 
-  Record record;
-  record.data = record_data;
-  // record.valid = true;
-  rc = insert_record(trx, &record);
-  delete[] record_data;
   return rc;
 }
 
