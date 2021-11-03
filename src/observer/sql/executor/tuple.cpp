@@ -356,8 +356,10 @@ void TupleSet::print(std::ostream &os) const {
             avg_val += item.values()[iter->first]->return_val();                
           }
           avg_val /= cnt;
+          int v_for_out = avg_val * 100;
+          avg_val = v_for_out / 100.0;
           char *res;
-          sprintf(res, "%.2g", avg_val);
+          sprintf(res, "%g", avg_val);
           os << res;
           os << " | ";
         }
@@ -438,8 +440,10 @@ void TupleSet::print(std::ostream &os) const {
           avg_val += item.values()[schema_.aggtype_pos.back().first]->return_val();                
         }
         avg_val /= cnt;
+        int v_for_out = avg_val * 100;
+        avg_val = v_for_out / 100.0;
         char res[64];
-        sprintf(res, "%.2g", avg_val);
+        sprintf(res, "%g", avg_val);
         os << res << endl;
       }
       break;
