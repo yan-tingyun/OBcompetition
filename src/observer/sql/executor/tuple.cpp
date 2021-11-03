@@ -137,6 +137,115 @@ void TupleSchema::print(std::ostream &os) const {
   os << fields_.back().field_name() << std::endl;
 }
 
+void TupleSchema::print_for_aggrefun(std::ostream &os) const {
+  if (fields_.empty()) {
+    os << "No schema";
+    return;
+  }
+
+  // 判断有多张表还是只有一张表
+  std::set<std::string> table_names;
+  for (const auto &field: fields_) {
+    table_names.insert(field.table_name());
+  }
+
+  for(auto iter = aggtype_pos.begin(); iter != aggtype_pos.end()-1; ++iter){
+    switch(iter->second){
+      case COUNT_F:{
+        os << "COUNT(";
+        if (table_names.size() > 1) {
+          os << fields_[iter->first].table_name() << ".";
+        }
+        os << fields_[iter->first].field_name() << ") | ";
+      } 
+      break;
+      case COUNT_STAR_F:{
+        os << "COUNT(*) | ";
+      } 
+      break;
+      case COUNT_NUM_F:{
+        os << "COUNT(1) | ";
+      } 
+      break;
+      case MAX_F:{
+        os << "MAX(";
+        if (table_names.size() > 1) {
+          os << fields_[iter->first].table_name() << ".";
+        }
+        os << fields_[iter->first].field_name() << ") | ";
+      }
+      break;
+      case MIN_F:{
+        os << "MIN(";
+        if (table_names.size() > 1) {
+          os << fields_[iter->first].table_name() << ".";
+        }
+        os << fields_[iter->first].field_name() << ") | ";
+      }
+      break;
+      case AVG_F:{
+        os << "AVG(";
+        if (table_names.size() > 1) {
+          os << fields_[iter->first].table_name() << ".";
+        }
+        os << fields_[iter->first].field_name() << ") | ";
+      }
+      break;
+      default:{
+        os << "ERROR : aggregate function can't be selected with common fields!" << endl;
+        return;
+      }
+    }
+  }
+
+  switch(aggtype_pos.back().second){
+    case COUNT_F:{
+      os << "COUNT(";
+      if (table_names.size() > 1) {
+        os << fields_[aggtype_pos.back().first].table_name() << ".";
+      }
+      os << fields_[aggtype_pos.back().first].field_name() << ")" << std::endl;
+    } 
+    break;
+    case COUNT_STAR_F:{
+      os << "COUNT(*)" << endl;
+    } 
+    break;
+    case COUNT_NUM_F:{
+      os << "COUNT(1)" << endl;
+    } 
+    break;
+    case MAX_F:{
+      os << "MAX(";
+      if (table_names.size() > 1) {
+        os << fields_[aggtype_pos.back().first].table_name() << ".";
+      }
+      os << fields_[aggtype_pos.back().first].field_name() << ")" << std::endl;
+    }
+    break;
+    case MIN_F:{
+      os << "MIN(";
+      if (table_names.size() > 1) {
+        os << fields_[aggtype_pos.back().first].table_name() << ".";
+      }
+      os << fields_[aggtype_pos.back().first].field_name() << ")" << std::endl;
+    }
+    break;
+    case AVG_F:{
+      os << "AVG(";
+      if (table_names.size() > 1) {
+        os << fields_[aggtype_pos.back().first].table_name() << ".";
+      }
+      os << fields_[aggtype_pos.back().first].field_name() << ")" << std::endl;
+    }
+    break;
+    default:{
+      os << "ERROR : aggregate function can't be selected with common fields!" << endl;
+      return;
+    }
+  }
+}
+
 /////////////////////////////////////////////////////////////////////////////
 TupleSet::TupleSet(TupleSet &&other) : tuples_(std::move(other.tuples_)), schema_(other.schema_){
   other.schema_.clear();
@@ -171,17 +280,192 @@ void TupleSet::print(std::ostream &os) const {
     return;
   }
 
-  schema_.print(os);
+  if(schema_.aggtype_pos.front().second != NOTAGG){
+    schema_.print_for_aggrefun(os);
 
-  for (const Tuple &item : tuples_) {
-    const std::vector<std::shared_ptr<TupleValue>> &values = item.values();
-    for (std::vector<std::shared_ptr<TupleValue>>::const_iterator iter = values.begin(), end = --values.end();
-          iter != end; ++iter) {
-      (*iter)->to_string(os);
-      os << " | ";
+
+    for(auto iter = schema_.aggtype_pos.begin(); iter != schema_.aggtype_pos.end()-1; ++iter){
+      switch(iter->second){
+        case COUNT_F:{
+          if(tuples_.size() == 0){
+            os << "NULL | ";
+            continue;
+          }
+          int cnt = 0;
+          for (const Tuple &item : tuples_) {
+            // 需要增加对null字段的判断
+            // count(column) 需要care null字段判断
+            ++cnt;               
+          }
+          os << to_string(cnt);
+          os << " | ";
+        } 
+        break;
+        case COUNT_STAR_F:
+        case COUNT_NUM_F:{
+          if(tuples_.size() == 0){
+            os << "NULL | ";
+            continue;
+          }
+          int cnt = 0;
+          for (const Tuple &item : tuples_) {
+            ++cnt;               
+          }
+          os << to_string(cnt);
+          os << " | ";
+        } 
+        break;
+        case MAX_F:{
+          if(tuples_.size() == 0){
+            os << "NULL | ";
+            continue;
+          }
+          shared_ptr<TupleValue> max_val = tuples_[0].values()[iter->first];
+          for (const Tuple &item : tuples_) {
+            if(item.values()[iter->first]->compare(*max_val) > 0)
+              max_val = item.values()[iter->first];                   
+          }
+          (*max_val).to_string(os);
+          os << " | ";
+        }
+        break;
+        case MIN_F:{
+          if(tuples_.size() == 0){
+            os << "NULL | ";
+            continue;
+          }
+          shared_ptr<TupleValue> min_val = tuples_[0].values()[iter->first];
+          for (const Tuple &item : tuples_) {
+            if(item.values()[iter->first]->compare(*min_val) < 0)
+              min_val = item.values()[iter->first];                   
+          }
+          (*min_val).to_string(os);
+          os << " | ";
+        }
+        break;
+        case AVG_F:{
+          if(tuples_.size() == 0){
+            os << "NULL | ";
+            continue;
+          }
+          float avg_val = 0;
+          int cnt = 0;
+          for (const Tuple &item : tuples_) {
+            // 需要增加对null字段的判断
+            ++cnt;
+            avg_val += item.values()[iter->first]->return_val();                
+          }
+          avg_val /= cnt;
+          char *res;
+          sprintf(res, "%.2g", avg_val);
+          os << res;
+          os << " | ";
+        }
+        break;
+        default:{
+          os << "ERROR : aggregate function can't be selected with common fields!" << endl;
+          return;
+        }
+      }
     }
-    values.back()->to_string(os);
-    os << std::endl;
+
+    switch(schema_.aggtype_pos.back().second){
+      case COUNT_F:{
+        if(tuples_.size() == 0){
+          os << "NULL" << endl;
+          return;
+        }
+        int cnt = 0;
+        for (const Tuple &item : tuples_) {
+          // 需要增加对null字段的判断
+          // count(column) 需要care null字段判断
+          ++cnt;               
+        }
+        os << to_string(cnt) << endl;
+      } 
+      break;
+      case COUNT_STAR_F:
+      case COUNT_NUM_F:{
+        if(tuples_.size() == 0){
+          os << "NULL" << endl;
+          return;
+        }
+        int cnt = 0;
+        for (const Tuple &item : tuples_) {
+          ++cnt;               
+        }
+        os << to_string(cnt) << endl;
+      } 
+      break;
+      case MAX_F:{
+        if(tuples_.size() == 0){
+          os << "NULL" << endl;
+          return;
+        }
+        shared_ptr<TupleValue> max_val = tuples_[0].values()[schema_.aggtype_pos.back().first];
+        for (const Tuple &item : tuples_) {
+          if(item.values()[schema_.aggtype_pos.back().first]->compare(*max_val) > 0)
+            max_val = item.values()[schema_.aggtype_pos.back().first];                   
+        }
+        (*max_val).to_string(os);
+        os << endl;
+      }
+      break;
+      case MIN_F:{
+        if(tuples_.size() == 0){
+          os << "NULL" << endl;
+          return;
+        }
+        shared_ptr<TupleValue> min_val = tuples_[0].values()[schema_.aggtype_pos.back().first];
+        for (const Tuple &item : tuples_) {
+          if(item.values()[schema_.aggtype_pos.back().first]->compare(*min_val) < 0)
+            min_val = item.values()[schema_.aggtype_pos.back().first];                   
+        }
+        (*min_val).to_string(os);
+        os << endl;
+      }
+      break;
+      case AVG_F:{
+        if(tuples_.size() == 0){
+          os << "NULL" << endl;
+          return;
+        }
+        float avg_val = 0;
+        int cnt = 0;
+        for (const Tuple &item : tuples_) {
+          // 需要增加对null字段的判断
+          ++cnt;
+          avg_val += item.values()[schema_.aggtype_pos.back().first]->return_val();                
+        }
+        avg_val /= cnt;
+        char res[64];
+        sprintf(res, "%.2g", avg_val);
+        os << res << endl;
+      }
+      break;
+      default:{
+        os << "ERROR : aggregate function can't be selected with common fields!" << endl;
+        return;
+      }
+    }
+
+  
+  
+  
+  
+  }else{
+    schema_.print(os);
+
+    for (const Tuple &item : tuples_) {
+      const std::vector<std::shared_ptr<TupleValue>> &values = item.values();
+      for (std::vector<std::shared_ptr<TupleValue>>::const_iterator iter = values.begin(), end = --values.end();
+            iter != end; ++iter) {
+        (*iter)->to_string(os);
+        os << " | ";
+      }
+      values.back()->to_string(os);
+      os << std::endl;
+    }
   }
 }
 
@@ -241,7 +525,7 @@ void TupleRecordConverter::add_record(const char *record) {
         // value 为距离1970-01-01年的秒数
         // 需要转换为YYYY-mm-dd的格式，用0填充不足位
         int value = *(int*)(record + field_meta->offset());
-        int sec = 0;
+        long long sec = 0;
         int days[13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
         int year = 1970;
         while(sec<=value){

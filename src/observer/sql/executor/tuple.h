@@ -21,6 +21,8 @@ See the Mulan PSL v2 for more details. */
 #include "sql/parser/parse.h"
 #include "sql/executor/value.h"
 
+using namespace std;
+
 class Table;
 
 class Tuple {
@@ -107,9 +109,22 @@ public:
     fields_.clear();
   }
 
+  int field_size() {
+    return fields_.size();
+  }
+
   void print(std::ostream &os) const;
+
+  void print_for_aggrefun(ostream &os) const;
 public:
   static void from_table(const Table *table, TupleSchema &schema);
+
+public:
+  // 记录每个属性对应的聚合函数类型及他们在tuplefield 数组中的对应下标位置
+  // 因为count*会走列出所有字段的from_table函数，所以会列出所有field，当有多种聚合函数多个属性时会对应错乱
+  // 后期考虑在表中元数据增加tuple number字段记录元组数据，可以快速完成select count* from table;
+  vector<pair<int, AggreType>> aggtype_pos; 
+
 private:
   std::vector<TupleField> fields_;
 };

@@ -37,7 +37,7 @@ typedef enum {
 typedef enum { UNDEFINED, CHARS, INTS, FLOATS, DATES} AttrType;
 
 // 聚合函数类型
-typedef enum { NOTAGG, AVG, MAX, MIN, COUNT} AggreType;
+typedef enum { NOTAGG, AVG_F, MAX_F, MIN_F, COUNT_F, COUNT_STAR_F, COUNT_NUM_F} AggreType;
 
 //属性结构体
 typedef struct {

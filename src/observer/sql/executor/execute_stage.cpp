@@ -309,14 +309,40 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
     return RC::SCHEMA_TABLE_NOT_EXIST;
   }
 
+  /*
+    !!! 注意这个循环是从后往前
+  */
   for (int i = selects.attr_num - 1; i >= 0; i--) {
     const RelAttr &attr = selects.attributes[i];
     if (nullptr == attr.relation_name || 0 == strcmp(table_name, attr.relation_name)) {
-      if (0 == strcmp("*", attr.attribute_name)) {
+      if (0 == strcmp("*", attr.attribute_name) || (attr.attribute_name == nullptr && (selects.aggre_type[i] >= COUNT_F && selects.aggre_type[i] <= COUNT_NUM_F))) {
+
+
+        schema.aggtype_pos.push_back({schema.field_size() ,selects.aggre_type[i]});
+
         // 列出这张表所有字段
         TupleSchema::from_table(table, schema);
-        break; // 没有校验，给出* 之后，再写字段的错误
+
+        if(selects.aggre_type[i] == NOTAGG)
+          break; // 没有校验，给出* 之后，再写字段的错误
+
       } else {
+
+
+        bool if_exist = false;
+        for(int j = 0; j < schema.field_size(); ++j){
+          const TupleField &f = schema.field(j);
+          if (0 == strcmp(f.table_name(), table_name) &&
+              0 == strcmp(f.field_name(), attr.attribute_name)) {
+            schema.aggtype_pos.push_back({j,selects.aggre_type[i]});
+            if_exist = true;
+          }
+        }
+
+        if(selects.aggre_type[0] != NOTAGG && !if_exist)
+          schema.aggtype_pos.push_back({schema.field_size(),selects.aggre_type[i]});
+
+
         // 列出这张表相关字段
         RC rc = schema_add_field(table, attr.attribute_name, schema);
         if (rc != RC::SUCCESS) {
