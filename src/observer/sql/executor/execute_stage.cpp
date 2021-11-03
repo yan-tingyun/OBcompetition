@@ -328,19 +328,23 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
 
       } else {
 
-
         bool if_exist = false;
-        for(int j = 0; j < schema.field_size(); ++j){
-          const TupleField &f = schema.field(j);
-          if (0 == strcmp(f.table_name(), table_name) &&
-              0 == strcmp(f.field_name(), attr.attribute_name)) {
-            schema.aggtype_pos.push_back({j,selects.aggre_type[i]});
-            if_exist = true;
-          }
-        }
 
-        if(selects.aggre_type[0] != NOTAGG && !if_exist)
+        if(selects.aggre_type[0] != NOTAGG){
+      
+          for(int j = 0; j < schema.field_size(); ++j){
+            const TupleField &f = schema.field(j);
+            if (0 == strcmp(f.table_name(), table_name) &&
+                0 == strcmp(f.field_name(), attr.attribute_name)) {
+              schema.aggtype_pos.push_back({j,selects.aggre_type[i]});
+              if_exist = true;
+            }
+          }
+
+        }
+        if(!if_exist)
           schema.aggtype_pos.push_back({schema.field_size(),selects.aggre_type[i]});
+
 
 
         // 列出这张表相关字段
