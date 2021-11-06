@@ -387,7 +387,8 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
 
   } else {
     // 当前只查询一张表，直接返回结果即可
-    tuple_sets.front().print(ss);
+
+    tuple_sets.front().print(selects,ss);
   }
 
   for (SelectExeNode *& tmp_node: select_nodes) {
@@ -421,6 +422,9 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
     return RC::SCHEMA_TABLE_NOT_EXIST;
   }
 
+  // 标记位，标记是否存在这张表中待查询的属性，因为有这样的查询 select t1.* from t1, t2;
+  bool flag_exist_attr = false;
+
   /*
   * !!! 注意这个循环是从后往前
   * 
@@ -431,9 +435,9 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
     // 校验属性列表中的每个
     const RelAttr &attr = selects.attributes[i];
 
-    // 单表情况--------------------------是当前表的属性情况
+    // 单表情况或者多表的select *-----------是当前表的属性情况
     if (nullptr == attr.relation_name || 0 == strcmp(table_name, attr.relation_name)) {
-
+      flag_exist_attr = true;
       // 对于select * from table 、 select count(1) from table 、 select count(*) from table 、 select table.* from
       if (0 == strcmp("*", attr.attribute_name) || (attr.attribute_name == nullptr && (selects.aggre_type[i] >= COUNT_F && selects.aggre_type[i] <= COUNT_NUM_F))) {
 
@@ -450,6 +454,7 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
       } else {
         // select tabel.attr from, select table1.attr from t1,t2
 
+        // 为了聚合函数的实现
         // 此实现存在小问题：检查当前属性是否存在过 检查了两次，一次在下方，第二次在schema_add_field函数中，但数组很小，check double的代价不大
         // 标记当前聚合字段查询的属性是否已经被scan过了，如果scan过则将其在tuplefield数组中的下标与聚合类型相对应
         bool if_exist = false;
@@ -478,6 +483,14 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
         }
       }
     }
+  }
+
+  if(!flag_exist_attr){
+    // 若是聚合函数运算将对应属性下标与聚类类型对应
+    schema.aggtype_pos.push_back({schema.field_size() ,NOTAGG});
+
+    // 列出这张表所有字段
+    TupleSchema::from_table(table, schema);
   }
 
   // 找出仅与此表相关的过滤条件, 或者都是值的过滤条件

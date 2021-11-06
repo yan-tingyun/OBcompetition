@@ -118,7 +118,7 @@ public:
     return fields_.size();
   }
 
-  void print(std::ostream &os) const;
+  void print(const Selects &select,std::ostream &os) const;
 
   void print_for_aggrefun(ostream &os) const;
   void print_for_multitables(ostream &os, vector<pair<int,int>> &print_col,unordered_map<string, pair<int,int>> &table_to_valuepos, const Selects selects) const;
@@ -161,7 +161,7 @@ public:
   const Tuple &get(int index) const;
   const std::vector<Tuple> &tuples() const;
 
-  void print(std::ostream &os) const;
+  void print(const Selects &select,std::ostream &os) const;
 
   void print_for_join(const Selects &selects, std::ostream &os, unordered_map<string, pair<int,int>> &table_to_valuepos) const;
 
