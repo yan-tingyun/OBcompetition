@@ -485,7 +485,7 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
     const Condition &condition = selects.conditions[i];
 
     // 校验多表查询condition不带表名
-    if(selects.condition_num > 1){
+    if(selects.relation_num > 1){
       if((condition.left_is_attr == 1 && condition.left_attr.relation_name == nullptr)
         || (condition.right_is_attr == 1 && condition.right_attr.relation_name == nullptr)){
           // 如果左边是属性名或者右边是属性名但对应relattr对象中的表名为空（没带表名） ，返回sql错误
