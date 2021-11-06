@@ -13,6 +13,7 @@ See the Mulan PSL v2 for more details. */
 //
 
 #include <stddef.h>
+#include <string>
 #include "condition_filter.h"
 #include "record_manager.h"
 #include "common/log/log.h"
@@ -415,38 +416,40 @@ bool DefaultConditionFilter::filter(const Record &rec) const
 
 
 bool DefaultConditionFilter::filter_for_join(const Tuple &tuple){
-  const char *left_value = nullptr;
-  const char *right_value = nullptr;
+  string left_value;
+  string right_value;
 
 
   left_value = tuple.get_pointer(left_.attr_offset)->return_char_val();
   right_value = tuple.get_pointer(right_.attr_offset)->return_char_val();
 
+
   int cmp_result = 0;
   switch (attr_type_) {
     case CHARS: {  // 字符串都是定长的，直接比较
       // 按照C字符串风格来定
-      cmp_result = strcmp(left_value, right_value);
+      cmp_result = left_value.compare(right_value);
     } break;
     case INTS: {
       // 没有考虑大小端问题
       // 对int和float，要考虑字节对齐问题,有些平台下直接转换可能会跪
-      int left = *(int *)left_value;
-      int right = *(int *)right_value;
+      int left = atoi(left_value.c_str());
+      int right = atoi(right_value.c_str());
       cmp_result = left - right;
     } break;
     case FLOATS: {
-      float left = *(float *)left_value;
-      float right = *(float *)right_value;
+      float left = atof(left_value.c_str());
+      float right = atof(right_value.c_str());
       cmp_result = (int)(left - right);
     } break;
     case DATES: {
       // 这里要按照char的方式判断，因为tuple里的数据已经是int转为标准日期格式的数据了
-      cmp_result = strcmp(left_value, right_value);
+      cmp_result = left_value.compare(right_value);
     } break;
     default: {
     }
   }
+
 
   switch (comp_op_) {
     case EQUAL_TO:

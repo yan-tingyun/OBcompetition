@@ -287,10 +287,12 @@ RC cartesian(vector<TupleSet> &tuple_sets, TupleSet &tuple_set, int cur_index, c
   }
 
   for(DefaultConditionFilter * &filter : condition_filters){
-    for(auto iter = tuples_join.begin(); iter != tuples_join.end(); ++iter){
+    for(auto iter = tuples_join.begin(); iter != tuples_join.end();){
       // 如果是不满足条件的元组就erase，并且修改迭代器防止失效
-      if(!filter->filter_for_join(*iter))
+      if(!filter->filter_for_join(*iter)){
         iter = tuples_join.erase(iter);
+      }else
+        ++iter;
     }
   }
 

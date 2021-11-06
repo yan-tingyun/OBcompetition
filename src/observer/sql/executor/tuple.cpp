@@ -39,6 +39,7 @@ Tuple & Tuple::operator=(Tuple &&other) noexcept {
 }
 
 Tuple::~Tuple() {
+  values_.clear();
 }
 
 // add (Value && value)

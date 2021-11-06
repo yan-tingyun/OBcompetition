@@ -19,6 +19,9 @@ See the Mulan PSL v2 for more details. */
 
 #include <string>
 #include <ostream>
+#include <iostream>
+
+using namespace std;
 
 class TupleValue {
 public:
@@ -30,7 +33,7 @@ public:
   // 便于聚合函数计算
   virtual float return_val() const = 0;
   // 返回char*类型value
-  virtual const char* return_char_val() const = 0;
+  virtual string return_char_val() const = 0;
 private:
 };
 
@@ -52,10 +55,8 @@ public:
     return value_;
   }
 
-  virtual const char*  return_char_val() const override{
-    char *ch;
-    sprintf(ch, "%d", value_);
-    return ch;
+  virtual string  return_char_val() const override{
+    return std::to_string(value_);
   }
 
 private:
@@ -88,10 +89,8 @@ public:
   }
 
 
-  virtual const char* return_char_val() const override{
-    char *ch;
-    sprintf(ch, "%f", value_);
-    return ch;
+  virtual string return_char_val() const override{
+    return std::to_string(value_);
   }
 private:
   float value_;
@@ -117,8 +116,8 @@ public:
     return atof(value_.c_str());
   }
 
-  virtual const char* return_char_val() const override{
-    return value_.c_str();
+  virtual string return_char_val() const override{
+    return value_;
   }
 private:
   std::string value_;
