@@ -17,6 +17,7 @@ See the Mulan PSL v2 for more details. */
 
 #include <memory>
 #include <vector>
+#include <unordered_map>
 
 #include "sql/parser/parse.h"
 #include "sql/executor/value.h"
@@ -58,6 +59,8 @@ public:
     return values_[index];
   }
 
+  void join_tuples(const Tuple &tuple_oth);
+
 private:
   std::vector<std::shared_ptr<TupleValue>>  values_;
 };
@@ -96,6 +99,8 @@ public:
   // void merge(const TupleSchema &other);
   void append(const TupleSchema &other);
 
+  void set_tuplefield(const vector<TupleField> &tuplefields);
+
   const std::vector<TupleField> &fields() const {
     return fields_;
   }
@@ -109,13 +114,14 @@ public:
     fields_.clear();
   }
 
-  int field_size() {
+  int field_size() const {
     return fields_.size();
   }
 
   void print(std::ostream &os) const;
 
   void print_for_aggrefun(ostream &os) const;
+  void print_for_multitables(ostream &os, vector<pair<int,int>> &print_col,unordered_map<string, pair<int,int>> &table_to_valuepos, const Selects selects) const;
 public:
   static void from_table(const Table *table, TupleSchema &schema);
 
@@ -141,6 +147,9 @@ public:
 
   void set_schema(const TupleSchema &schema);
 
+  void set_schema_tuplefields(const vector<TupleField> &tuplefields);
+  void set_vec_tuple(const vector<Tuple> &tuple_vec);
+
   const TupleSchema &get_schema() const;
 
   void add(Tuple && tuple);
@@ -153,10 +162,9 @@ public:
   const std::vector<Tuple> &tuples() const;
 
   void print(std::ostream &os) const;
-public:
-  const TupleSchema &schema() const {
-    return schema_;
-  }
+
+  void print_for_join(const Selects &selects, std::ostream &os, unordered_map<string, pair<int,int>> &table_to_valuepos) const;
+
 private:
   std::vector<Tuple> tuples_;
   TupleSchema schema_;

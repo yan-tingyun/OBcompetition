@@ -20,6 +20,8 @@ See the Mulan PSL v2 for more details. */
 
 struct Record;
 class Table;
+class Tuple;
+class TupleSet;
 
 struct ConDesc {
   bool   is_attr;     // 是否属性，false 表示是值
@@ -48,8 +50,13 @@ public:
   RC init(const ConDesc &left, const ConDesc &right, AttrType attr_type, CompOp comp_op);
   RC init(Table &table, const Condition &condition);
 
+  // filter for cartesian product
+  RC init(const Condition &condition,const TupleSet &tuple_set_a,const TupleSet &tuple_set_b);
+
   virtual bool filter(const Record &rec) const;
 
+  // 这里写法有问题，参考scan record filter过程
+  bool filter_for_join(const Tuple &tuple);
 
 private:
   // 日期校验
@@ -68,6 +75,9 @@ public:
   CompOp comp_op() const {
     return comp_op_;
   }
+public:
+  char *left_table;
+  char *right_table;
 
 private:
   ConDesc  left_;

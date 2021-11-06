@@ -394,6 +394,12 @@ select_attr:
 			selects_append_aggretype(&CONTEXT->ssql->sstr.selection, NOTAGG);
 			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
 		}
+	| ID DOT STAR attr_list{
+			RelAttr attr;
+			relation_attr_init(&attr, $1, "*");
+			selects_append_aggretype(&CONTEXT->ssql->sstr.selection, NOTAGG);
+			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
+	}
 	| AVG LBRACE ID RBRACE aggre_list {
 		/* avg function */
 		RelAttr attr;
@@ -494,6 +500,12 @@ attr_list:
         // CONTEXT->ssql->sstr.selection.attributes[CONTEXT->select_length].attribute_name=$4;
         // CONTEXT->ssql->sstr.selection.attributes[CONTEXT->select_length++].relation_name=$2;
   	  }
+	| COMMA ID DOT STAR attr_list{
+			RelAttr attr;
+			relation_attr_init(&attr, $2, "*");
+			selects_append_aggretype(&CONTEXT->ssql->sstr.selection, NOTAGG);
+			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
+	}
   	;
 
 rel_list:

@@ -20,8 +20,9 @@ See the Mulan PSL v2 for more details. */
 using namespace std;
 
 Tuple::Tuple(const Tuple &other) {
-  LOG_PANIC("Copy constructor of tuple is not supported");
-  exit(1);
+  // LOG_PANIC("Copy constructor of tuple is not supported");
+  // exit(1);
+  values_.assign(other.values().begin(),other.values().end());
 }
 
 Tuple::Tuple(Tuple &&other) noexcept : values_(std::move(other.values_)) {
@@ -57,6 +58,10 @@ void Tuple::add(float value) {
 
 void Tuple::add(const char *s, int len) {
   add(new StringValue(s, len));
+}
+
+void Tuple::join_tuples(const Tuple &tuple_oth){
+  values_.insert(values_.end(),tuple_oth.values().begin(), tuple_oth.values().end());
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -98,6 +103,10 @@ void TupleSchema::append(const TupleSchema &other) {
   for (const auto &field: other.fields_) {
     fields_.emplace_back(field);
   }
+}
+
+void TupleSchema::set_tuplefield(const vector<TupleField> &tuplefields){
+  fields_.assign(tuplefields.begin(), tuplefields.end());
 }
 
 int TupleSchema::index_of_field(const char *table_name, const char *field_name) const {
@@ -246,6 +255,40 @@ void TupleSchema::print_for_aggrefun(std::ostream &os) const {
   }
 }
 
+
+void TupleSchema::print_for_multitables(ostream &os, vector<pair<int,int>> &print_col,unordered_map<string, pair<int,int>> &table_to_valuepos, const Selects selects) const{
+
+  for(int i = selects.attr_num - 1; i > -1; --i){
+    const RelAttr &attr = selects.attributes[i];
+    if(0 == strcmp("*", attr.attribute_name) && nullptr == attr.relation_name){
+      // select * from table1, table2 ..
+      print_col.push_back({0, field_size()});
+    }else{
+      // select t1.*,t2.*from t1, t2.. / select t1.col1,t2.col2 from t1, t2...
+      if(0 == strcmp("*", attr.attribute_name)){
+        print_col.emplace_back(table_to_valuepos[attr.relation_name]);
+      }else{
+        int col_pos = index_of_field(attr.relation_name,attr.attribute_name);
+        if(col_pos != -1)
+          print_col.push_back({col_pos, col_pos+1});
+      }
+    }
+  }
+
+  for(int i = 0; i < print_col.size() - 1; ++i){
+    for(int j = print_col[i].first; j < print_col[i].second; ++j){
+      os << field(j).table_name() << "." << field(j).field_name() << " | ";
+    }
+  }
+
+  for(int j = print_col.back().first; j < print_col.back().second-1; ++j){
+    os << field(j).table_name() << "." << field(j).field_name() << " | ";
+  }
+
+  os << field(print_col.back().second-1).table_name() << "." << field(print_col.back().second-1).field_name() << endl;
+
+}
+
 /////////////////////////////////////////////////////////////////////////////
 TupleSet::TupleSet(TupleSet &&other) : tuples_(std::move(other.tuples_)), schema_(other.schema_){
   other.schema_.clear();
@@ -291,12 +334,13 @@ void TupleSet::print(std::ostream &os) const {
             os << "NULL | ";
             continue;
           }
-          int cnt = 0;
-          for (const Tuple &item : tuples_) {
-            // 需要增加对null字段的判断
-            // count(column) 需要care null字段判断
-            ++cnt;               
-          }
+          // int cnt = 0;
+          // for (const Tuple &item : tuples_) {
+          //   // 需要增加对null字段的判断
+          //   // count(column) 需要care null字段判断
+          //   ++cnt;               
+          // }
+          int cnt = tuples_.size();
           os << to_string(cnt);
           os << " | ";
         } 
@@ -307,10 +351,11 @@ void TupleSet::print(std::ostream &os) const {
             os << "NULL | ";
             continue;
           }
-          int cnt = 0;
-          for (const Tuple &item : tuples_) {
-            ++cnt;               
-          }
+          // int cnt = 0;
+          // for (const Tuple &item : tuples_) {
+          //   ++cnt;               
+          // }
+          int cnt = tuples_.size();
           os << to_string(cnt);
           os << " | ";
         } 
@@ -377,12 +422,13 @@ void TupleSet::print(std::ostream &os) const {
           os << "NULL" << endl;
           return;
         }
-        int cnt = 0;
-        for (const Tuple &item : tuples_) {
-          // 需要增加对null字段的判断
-          // count(column) 需要care null字段判断
-          ++cnt;               
-        }
+        // int cnt = 0;
+        // for (const Tuple &item : tuples_) {
+        //   // 需要增加对null字段的判断
+        //   // count(column) 需要care null字段判断
+        //   ++cnt;               
+        // }
+        int cnt = tuples_.size();
         os << to_string(cnt) << endl;
       } 
       break;
@@ -392,10 +438,11 @@ void TupleSet::print(std::ostream &os) const {
           os << "NULL" << endl;
           return;
         }
-        int cnt = 0;
-        for (const Tuple &item : tuples_) {
-          ++cnt;               
-        }
+        // int cnt = 0;
+        // for (const Tuple &item : tuples_) {
+        //   ++cnt;               
+        // }
+        int cnt = tuples_.size();
         os << to_string(cnt) << endl;
       } 
       break;
@@ -454,9 +501,6 @@ void TupleSet::print(std::ostream &os) const {
     }
 
   
-  
-  
-  
   }else{
     schema_.print(os);
 
@@ -470,6 +514,30 @@ void TupleSet::print(std::ostream &os) const {
       values.back()->to_string(os);
       os << std::endl;
     }
+  }
+}
+
+
+void TupleSet::print_for_join(const Selects &selects, ostream &os, unordered_map<string, pair<int,int>> &table_to_valuepos) const {
+  // vector<pair<int,int>> 
+  // 先遍历结果集的表头，然后将表头每列对应数据列存在pair数组里，
+  vector<pair<int, int>> print_col;
+  schema_.print_for_multitables(os, print_col,table_to_valuepos, selects);
+
+  for (const Tuple &item : tuples_) {
+    const std::vector<std::shared_ptr<TupleValue>> &values = item.values();
+    for(int i = 0; i < print_col.size() - 1; ++i){
+      for(int j = print_col[i].first; j < print_col[i].second; ++j){
+        values[j]->to_string(os);
+        os << " | ";
+      }
+    }
+    for(int j = print_col.back().first; j < print_col.back().second-1; ++j){
+      values[j]->to_string(os);
+      os << " | ";
+    }
+    values[print_col.back().second-1]->to_string(os);
+    os << endl;
   }
 }
 
@@ -497,13 +565,24 @@ const std::vector<Tuple> &TupleSet::tuples() const {
   return tuples_;
 }
 
+void TupleSet::set_schema_tuplefields(const vector<TupleField> &tuplefields){
+  schema_.set_tuplefield(tuplefields);
+}
+
+ void TupleSet::set_vec_tuple(const vector<Tuple> &tuple_vec){
+   tuples_.clear();
+   tuples_.reserve(tuple_vec.size());
+   for(size_t i = 0; i < tuple_vec.size(); ++i)
+    tuples_.emplace_back(tuple_vec[i]);
+ }
+
 /////////////////////////////////////////////////////////////////////////////
 TupleRecordConverter::TupleRecordConverter(Table *table, TupleSet &tuple_set) :
       table_(table), tuple_set_(tuple_set){
 }
 
 void TupleRecordConverter::add_record(const char *record) {
-  const TupleSchema &schema = tuple_set_.schema();
+  const TupleSchema &schema = tuple_set_.get_schema();
   Tuple tuple;
   const TableMeta &table_meta = table_->table_meta();
   for (const TupleField &field : schema.fields()) {
@@ -572,5 +651,3 @@ void TupleRecordConverter::add_record(const char *record) {
 
   tuple_set_.add(std::move(tuple));
 }
-
-

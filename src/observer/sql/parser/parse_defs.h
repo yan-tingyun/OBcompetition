@@ -67,12 +67,14 @@ typedef struct _Condition {
 typedef struct {
   size_t    attr_num;               // Length of attrs in Select clause
   RelAttr   attributes[MAX_NUM];    // attrs in Select clause
+                                    // select - from 中间的全部，是table.attr / 单标 attr / * / table.*
   size_t    relation_num;           // Length of relations in Fro clause
   char *    relations[MAX_NUM];     // relations in From clause
   size_t    condition_num;          // Length of conditions in Where clause
   Condition conditions[MAX_NUM];    // conditions in Where clause
 
-  AggreType aggre_type[MAX_NUM];    // aggregate function type
+  AggreType aggre_type[MAX_NUM];    // aggregate function type 记录是否为聚合函数查询
+                                    // 如果是聚合函数，那么将聚合函数的类型与属性对应，下标一一对应
 } Selects;
 
 // struct of insert

@@ -27,7 +27,10 @@ public:
 
   virtual void to_string(std::ostream &os) const = 0;
   virtual int compare(const TupleValue &other) const = 0;
+  // 便于聚合函数计算
   virtual float return_val() const = 0;
+  // 返回char*类型value
+  virtual const char* return_char_val() const = 0;
 private:
 };
 
@@ -47,6 +50,12 @@ public:
 
   float return_val() const override {
     return value_;
+  }
+
+  virtual const char*  return_char_val() const override{
+    char *ch;
+    sprintf(ch, "%d", value_);
+    return ch;
   }
 
 private:
@@ -77,6 +86,13 @@ public:
   float return_val() const override {
     return value_;
   }
+
+
+  virtual const char* return_char_val() const override{
+    char *ch;
+    sprintf(ch, "%f", value_);
+    return ch;
+  }
 private:
   float value_;
 };
@@ -99,6 +115,10 @@ public:
 
   float return_val() const override {
     return atof(value_.c_str());
+  }
+
+  virtual const char* return_char_val() const override{
+    return value_.c_str();
   }
 private:
   std::string value_;

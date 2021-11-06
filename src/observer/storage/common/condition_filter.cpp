@@ -17,6 +17,7 @@ See the Mulan PSL v2 for more details. */
 #include "record_manager.h"
 #include "common/log/log.h"
 #include "storage/common/table.h"
+#include "sql/executor/tuple.h"
 
 #define is_leap_year(y) (((y) % 4  == 0 && (y) % 100 != 0) || (y) % 400 == 0)
 using namespace std;
@@ -182,6 +183,108 @@ RC DefaultConditionFilter::init(Table &table, const Condition &condition)
   return init(left, right, type_left, condition.comp);
 }
 
+bool match_table(const char *table_name_in_condition, const char *table_name_to_match) {
+  return 0 == strcmp(table_name_in_condition, table_name_to_match);
+}
+
+// 笛卡尔积连接 filter函数处理思路：
+// 先分别将左属性 右属性与tuple field对应，然后生成临时供scan和笛卡尔积的两个tuple，最后合并成完整的所有元组记录
+// 对同一对tuple set元组可能有多个约束条件，需要对临时的两个tuple依次遍历完所有的约束条件后再进行笛卡尔积连接
+RC DefaultConditionFilter::init(const Condition &condition,const TupleSet &tuple_set_a,const TupleSet &tuple_set_b)
+{
+  ConDesc left;
+  ConDesc right;
+  left.is_attr = true;
+  right.is_attr = true;
+
+  AttrType type_left = UNDEFINED;
+  AttrType type_right = UNDEFINED;
+
+  if(match_table(condition.left_attr.relation_name, tuple_set_b.get_schema().field(0).table_name())){
+    // 是tuple set b中的属性
+    const TupleSchema &schema_b = tuple_set_b.get_schema();
+    int i = 0;
+    for(; i < schema_b.field_size(); ++i){
+      if(strcmp(condition.left_attr.attribute_name, schema_b.field(i).field_name()) == 0){
+        left_table = condition.left_attr.relation_name;
+        // 存储在连接后的记录中的偏移量下标，这里也可以传入连接后的field数组，可以比这个简洁很多，优化考虑
+        // field数组和tuple的记录是对应关系
+        left.attr_offset = i + tuple_set_a.get_schema().field_size();
+        left.value = nullptr;
+        type_left = schema_b.field(i).type();
+        break;
+      }
+    }
+    if(i == schema_b.field_size()){
+      LOG_WARN("No such field in condition. %s.%s", condition.left_attr.relation_name, condition.left_attr.attribute_name);
+      return RC::SCHEMA_FIELD_MISSING;
+    }
+  }else{
+    // 是连接表中的属性
+    const TupleSchema &schema_a = tuple_set_a.get_schema();
+    int i = 0;
+    for(; i < schema_a.field_size(); ++i){
+      if(strcmp(condition.left_attr.attribute_name, schema_a.field(i).field_name()) == 0 && strcmp(condition.left_attr.relation_name, schema_a.field(i).table_name()) == 0){
+        left_table = condition.left_attr.relation_name;
+        left.attr_offset = i;
+        left.value = nullptr;
+        type_left = schema_a.field(i).type();
+        break;
+      }
+    }
+    if(i == schema_a.field_size()){
+      LOG_WARN("No such field in condition. %s.%s", condition.left_attr.relation_name, condition.left_attr.attribute_name);
+      return RC::SCHEMA_FIELD_MISSING;
+    }
+  }
+
+
+  if(match_table(condition.right_attr.relation_name, tuple_set_b.get_schema().field(0).table_name())){
+    // 是tuple set b中的属性
+    const TupleSchema &schema_b = tuple_set_b.get_schema();
+    int i = 0;
+    for(; i < schema_b.field_size(); ++i){
+      if(strcmp(condition.right_attr.attribute_name, schema_b.field(i).field_name()) == 0){
+        right_table = condition.right_attr.relation_name;
+        right.attr_offset = i + tuple_set_a.get_schema().field_size();
+        right.value = nullptr;
+        type_right = schema_b.field(i).type();
+        break;
+      }
+    }
+    if(i == schema_b.field_size()){
+      LOG_WARN("No such field in condition. %s.%s", condition.right_attr.relation_name, condition.right_attr.attribute_name);
+      return RC::SCHEMA_FIELD_MISSING;
+    }
+  }else{
+    // 是连接表中的属性
+    const TupleSchema &schema_a = tuple_set_a.get_schema();
+    int i = 0;
+    for(; i < schema_a.field_size(); ++i){
+      if(strcmp(condition.right_attr.attribute_name, schema_a.field(i).field_name()) == 0 && strcmp(condition.right_attr.relation_name, schema_a.field(i).table_name()) == 0){
+        right_table = condition.right_attr.relation_name;
+        right.attr_offset = i;
+        right.value = nullptr;
+        type_right = schema_a.field(i).type();
+        break;
+      }
+    }
+    if(i == schema_a.field_size()){
+      LOG_WARN("No such field in condition. %s.%s", condition.right_attr.relation_name, condition.right_attr.attribute_name);
+      return RC::SCHEMA_FIELD_MISSING;
+    }
+  }
+  
+  if (type_left != type_right) {
+    return RC::SCHEMA_FIELD_TYPE_MISMATCH;
+  }
+
+  return init(left, right, type_left, condition.comp);
+}
+
+
+
+
 RC DefaultConditionFilter::is_date(void *v){
   char *p = new char[16];
   memcpy(p, v, 16);
@@ -283,6 +386,63 @@ bool DefaultConditionFilter::filter(const Record &rec) const
       int left = *(int *)left_value;
       int right = *(int *)right_value;
       cmp_result = left - right;
+    } break;
+    default: {
+    }
+  }
+
+  switch (comp_op_) {
+    case EQUAL_TO:
+      return 0 == cmp_result;
+    case LESS_EQUAL:
+      return cmp_result <= 0;
+    case NOT_EQUAL:
+      return cmp_result != 0;
+    case LESS_THAN:
+      return cmp_result < 0;
+    case GREAT_EQUAL:
+      return cmp_result >= 0;
+    case GREAT_THAN:
+      return cmp_result > 0;
+
+    default:
+      break;
+  }
+
+  LOG_PANIC("Never should print this.");
+  return cmp_result;  // should not go here
+}
+
+
+bool DefaultConditionFilter::filter_for_join(const Tuple &tuple){
+  const char *left_value = nullptr;
+  const char *right_value = nullptr;
+
+
+  left_value = tuple.get_pointer(left_.attr_offset)->return_char_val();
+  right_value = tuple.get_pointer(right_.attr_offset)->return_char_val();
+
+  int cmp_result = 0;
+  switch (attr_type_) {
+    case CHARS: {  // 字符串都是定长的，直接比较
+      // 按照C字符串风格来定
+      cmp_result = strcmp(left_value, right_value);
+    } break;
+    case INTS: {
+      // 没有考虑大小端问题
+      // 对int和float，要考虑字节对齐问题,有些平台下直接转换可能会跪
+      int left = *(int *)left_value;
+      int right = *(int *)right_value;
+      cmp_result = left - right;
+    } break;
+    case FLOATS: {
+      float left = *(float *)left_value;
+      float right = *(float *)right_value;
+      cmp_result = (int)(left - right);
+    } break;
+    case DATES: {
+      // 这里要按照char的方式判断，因为tuple里的数据已经是int转为标准日期格式的数据了
+      cmp_result = strcmp(left_value, right_value);
     } break;
     default: {
     }
