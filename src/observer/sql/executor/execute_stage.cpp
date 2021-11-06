@@ -481,14 +481,30 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
         if (rc != RC::SUCCESS) {
           return rc;
         }
+
+        // 如果有多表两边都是属性的判断条件也需要将这张表内涉及到判断的字段取出
+        for (size_t i = 0; i < selects.condition_num; i++) {
+          const Condition &condition = selects.conditions[i];
+          if(condition.left_is_attr == 1 && condition.right_is_attr == 1){
+            if(match_table(selects, condition.left_attr.relation_name, table_name) && !match_table(selects, condition.right_attr.relation_name, table_name)){
+              RC rc = schema_add_field(table, condition.left_attr.attribute_name, schema);
+              if (rc != RC::SUCCESS) {
+                return rc;
+              }
+
+            }else if(match_table(selects, condition.right_attr.relation_name, table_name) && !match_table(selects, condition.left_attr.relation_name, table_name)){
+              RC rc = schema_add_field(table, condition.right_attr.attribute_name, schema);
+              if (rc != RC::SUCCESS) {
+                return rc;
+              }
+            }
+          }
+        }
       }
     }
   }
 
   if(!flag_exist_attr){
-    // 若是聚合函数运算将对应属性下标与聚类类型对应
-    schema.aggtype_pos.push_back({schema.field_size() ,NOTAGG});
-
     // 列出这张表所有字段
     TupleSchema::from_table(table, schema);
   }
