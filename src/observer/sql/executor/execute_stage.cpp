@@ -500,6 +500,8 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
             }
           }
         }
+
+        
       }
     }
   }

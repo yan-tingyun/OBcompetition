@@ -110,6 +110,8 @@ ParserContext *get_context(yyscan_t scanner)
 		MIN
 		COUNT
 		AVG
+		INNER
+		JOIN
 
 %union {
   struct _Attr *attr;
@@ -356,6 +358,8 @@ update:			/*  update 语句的语法解析树*/
 			CONTEXT->condition_length = 0;
 		}
     ;
+
+
 select:				/*  select 语句的语法解析树*/
     SELECT select_attr FROM ID rel_list where SEMICOLON
 		{
@@ -373,7 +377,25 @@ select:				/*  select 语句的语法解析树*/
 			CONTEXT->select_length=0;
 			CONTEXT->value_length = 0;
 	}
+/* author yty 21-11-9 implement of inner join function */
+	| SELECT select_attr FROM ID INNER JOIN ID ON inner_on inner_join_list where SEMICOLON {
+		// CONTEXT->ssql->sstr.selection.relations[CONTEXT->from_length++]=$4;
+		selects_append_relation(&CONTEXT->ssql->sstr.selection, $7);
+		selects_append_relation(&CONTEXT->ssql->sstr.selection, $4);
+
+		selects_append_conditions(&CONTEXT->ssql->sstr.selection, CONTEXT->conditions, CONTEXT->condition_length);
+
+		CONTEXT->ssql->flag=SCF_SELECT;//"select";
+		// CONTEXT->ssql->sstr.selection.attr_num = CONTEXT->select_length;
+
+		//临时变量清零
+		CONTEXT->condition_length=0;
+		CONTEXT->from_length=0;
+		CONTEXT->select_length=0;
+		CONTEXT->value_length = 0;
+	}
 	;
+
 /* author yty 21/11/1 implement of aggregate function */
 select_attr:
     STAR {  
@@ -507,7 +529,17 @@ attr_list:
 			selects_append_attribute(&CONTEXT->ssql->sstr.selection, &attr);
 	}
   	;
-
+inner_join_list:
+	/* empty */
+	| INNER JOIN ID ON inner_on inner_join_list {
+		selects_append_relation(&CONTEXT->ssql->sstr.selection, $3);
+	}
+	;
+inner_on:
+	condition condition_list {
+	
+	}
+	;
 rel_list:
     /* empty */
     | COMMA ID rel_list {	
