@@ -125,6 +125,18 @@ void selects_append_conditions(Selects *selects, Condition conditions[], size_t 
   selects->condition_num = condition_num;
 }
 
+void selects_append_orders(Selects *selects, RelAttr *rel_attr, size_t order_type){
+  Order order;
+  order.order_attr = *rel_attr;
+  order.order_type = order_type;
+  selects->orders[selects->order_num++] = order;
+}
+
+void orders_destroy(Order *order){
+  order->order_type = 0;
+  relation_attr_destroy(&order->order_attr);
+}
+
 void selects_destroy(Selects *selects) {
   for (size_t i = 0; i < selects->attr_num; i++) {
     relation_attr_destroy(&selects->attributes[i]);
@@ -142,6 +154,10 @@ void selects_destroy(Selects *selects) {
     condition_destroy(&selects->conditions[i]);
   }
   selects->condition_num = 0;
+
+  for(size_t i = 0; i < selects->order_num; ++i)
+    orders_destroy(&selects->orders[i]);
+  selects->order_num = 0;
 }
 
 void inserts_init(Inserts *inserts, const char *relation_name, Value values[], size_t value_num) {

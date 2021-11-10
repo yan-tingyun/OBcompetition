@@ -51,6 +51,12 @@ typedef struct _Value {
   void *data;     // value
 } Value;
 
+// 排序列表
+typedef struct _Order{
+  size_t order_type; // 0 asc, 1 desc; default 0 - false - asc
+  RelAttr order_attr;
+} Order;
+
 typedef struct _Condition {
   int left_is_attr;    // TRUE if left-hand side is an attribute
                        // 1时，操作符左边是属性名，0时，是属性值
@@ -75,6 +81,8 @@ typedef struct {
 
   AggreType aggre_type[MAX_NUM];    // aggregate function type 记录是否为聚合函数查询
                                     // 如果是聚合函数，那么将聚合函数的类型与属性对应，下标一一对应
+  Order orders[MAX_NUM]; // order list
+  size_t order_num;
 } Selects;
 
 // struct of insert
@@ -207,6 +215,8 @@ void selects_append_attribute(Selects *selects, RelAttr *rel_attr);
 void selects_append_relation(Selects *selects, const char *relation_name);
 void selects_append_conditions(Selects *selects, Condition conditions[], size_t condition_num);
 void selects_append_aggretype(Selects *selects, AggreType aggre_type);
+void selects_append_orders(Selects *selects, RelAttr *rel_attr, size_t order_type);
+void orders_destroy(Order *order);
 void selects_destroy(Selects *selects);
 
 void inserts_init(Inserts *inserts, const char *relation_name, Value values[], size_t value_num);

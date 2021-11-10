@@ -360,7 +360,6 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
     }
   }
 
-  // std::stringstream ss;
   if (tuple_sets.size() > 1) {
     // 本次查询了多张表，需要做join操作
 
@@ -380,14 +379,19 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
       end_trx_if_need(session, trx, true);
       return rc;
     }
+    
+    // 对tuple set按照order list排序
+    // 注意校验合法性
 
     // 打印结果思路：
     // unordered_map中存储了表名与涉及到的字段在连接表中的下标对应关系，分别在select attr_list from中的attrlist在连接表中做投影，然后输出结果
     tupleset_join.print_for_join(selects, ss, table_to_valuepos);
 
   } else {
-    // 当前只查询一张表，直接返回结果即可
+    // 对tuple排序
+    // 注意校验合法性
 
+    // 当前只查询一张表，直接返回结果即可
     tuple_sets.front().print(selects,ss);
   }
 
@@ -398,6 +402,15 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   end_trx_if_need(session, trx, true);
   return rc;
 }
+
+RC sort_tuple_sets(Selects *selects, vector<TupleSet> &tuple_sets){
+  int order_num = selects->order_num;
+  int tuple_num = tuple_sets.size();
+
+  // 校验，1、单标查询、多表排序，2、多表查询，排序不带表名，3、多表查询，排序出现非这些表中的表名，
+
+}
+
 
 static RC schema_add_field(Table *table, const char *field_name, TupleSchema &schema) {
   const FieldMeta *field_meta = table->table_meta().field(field_name);
@@ -442,6 +455,7 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
       if (0 == strcmp("*", attr.attribute_name) || (attr.attribute_name == nullptr && (selects.aggre_type[i] >= COUNT_F && selects.aggre_type[i] <= COUNT_NUM_F))) {
 
         // 若是聚合函数运算将对应属性下标与聚类类型对应
+        // 此处仍需要修改，多表聚合函数对应存在问题
         schema.aggtype_pos.push_back({schema.field_size() ,selects.aggre_type[i]});
 
         // 列出这张表所有字段
@@ -481,35 +495,19 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
         if (rc != RC::SUCCESS) {
           return rc;
         }
-
-        // 如果有多表两边都是属性的判断条件也需要将这张表内涉及到判断的字段取出
-        for (size_t i = 0; i < selects.condition_num; i++) {
-          const Condition &condition = selects.conditions[i];
-          if(condition.left_is_attr == 1 && condition.right_is_attr == 1){
-            if(match_table(selects, condition.left_attr.relation_name, table_name) && !match_table(selects, condition.right_attr.relation_name, table_name)){
-              RC rc = schema_add_field(table, condition.left_attr.attribute_name, schema);
-              if (rc != RC::SUCCESS) {
-                return rc;
-              }
-
-            }else if(match_table(selects, condition.right_attr.relation_name, table_name) && !match_table(selects, condition.left_attr.relation_name, table_name)){
-              RC rc = schema_add_field(table, condition.right_attr.attribute_name, schema);
-              if (rc != RC::SUCCESS) {
-                return rc;
-              }
-            }
-          }
-        }
-
         
       }
     }
   }
 
   if(!flag_exist_attr){
-    // 列出这张表所有字段
+    // 如果有在from后涉及到的表但在选择属性中并未出现这张表的字段，为了做笛卡尔积也需要列出这张表所有字段
     TupleSchema::from_table(table, schema);
   }
+
+  // 排序列表中 出现的属性字段也需要选择出来
+
+  
 
   // 找出仅与此表相关的过滤条件, 或者都是值的过滤条件
   // 对于多表查询来讲还需要判断涉及两个表的过滤条件，这个需要在生成tuple set做笛卡尔积运算的时候完成
@@ -527,6 +525,22 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
           }
           return RC::SQL_SYNTAX;
         }
+    }
+
+    // 如果有多表两边都是属性的判断条件也需要将这张表内涉及到判断的字段取出
+    if(condition.left_is_attr == 1 && condition.right_is_attr == 1){
+      if(match_table(selects, condition.left_attr.relation_name, table_name) && !match_table(selects, condition.right_attr.relation_name, table_name)){
+        RC rc = schema_add_field(table, condition.left_attr.attribute_name, schema);
+        if (rc != RC::SUCCESS) {
+          return rc;
+        }
+
+      }else if(match_table(selects, condition.right_attr.relation_name, table_name) && !match_table(selects, condition.left_attr.relation_name, table_name)){
+        RC rc = schema_add_field(table, condition.right_attr.attribute_name, schema);
+        if (rc != RC::SUCCESS) {
+          return rc;
+        }
+      }
     }
 
 

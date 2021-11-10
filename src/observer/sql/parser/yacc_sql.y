@@ -47,6 +47,7 @@ void yyerror(yyscan_t scanner, const char *str)
   context->record_num = 0;
   context->ssql->sstr.insertion.value_num = 0;
   context->ssql->sstr.insertion.record_num = 0;
+  context->ssql->sstr.selection.order_num = 0;
   printf("parse sql failed. error=%s", str);
 }
 
@@ -112,6 +113,9 @@ ParserContext *get_context(yyscan_t scanner)
 		AVG
 		INNER
 		JOIN
+		ORDER
+		BY
+		ASC
 
 %union {
   struct _Attr *attr;
@@ -361,7 +365,7 @@ update:			/*  update 语句的语法解析树*/
 
 
 select:				/*  select 语句的语法解析树*/
-    SELECT select_attr FROM ID rel_list where SEMICOLON
+    SELECT select_attr FROM ID rel_list where order_by SEMICOLON
 		{
 			// CONTEXT->ssql->sstr.selection.relations[CONTEXT->from_length++]=$4;
 			selects_append_relation(&CONTEXT->ssql->sstr.selection, $4);
@@ -378,7 +382,7 @@ select:				/*  select 语句的语法解析树*/
 			CONTEXT->value_length = 0;
 	}
 /* author yty 21-11-9 implement of inner join function */
-	| SELECT select_attr FROM ID INNER JOIN ID ON inner_on inner_join_list where SEMICOLON {
+	| SELECT select_attr FROM ID INNER JOIN ID ON inner_on inner_join_list where order_by SEMICOLON {
 		// CONTEXT->ssql->sstr.selection.relations[CONTEXT->from_length++]=$4;
 		selects_append_relation(&CONTEXT->ssql->sstr.selection, $7);
 		selects_append_relation(&CONTEXT->ssql->sstr.selection, $4);
@@ -713,7 +717,74 @@ comOp:
     | GE { CONTEXT->comp = GREAT_EQUAL; }
     | NE { CONTEXT->comp = NOT_EQUAL; }
     ;
-
+order_by:
+	/* empty */
+	| ORDER BY ID order_list {
+		// default asc
+		// 需要校验是否为单标查询情况
+		RelAttr attr;
+		relation_attr_init(&attr, NULL, $3);
+		selects_append_orders(&CONTEXT->ssql->sstr.selection, &attr, 0);
+	}
+	| ORDER BY ID DOT ID order_list {
+		RelAttr attr;
+		relation_attr_init(&attr, $3, $5);
+		selects_append_orders(&CONTEXT->ssql->sstr.selection, &attr, 0);
+	}
+	| ORDER BY ID ASC order_list {
+		RelAttr attr;
+		relation_attr_init(&attr, NULL, $3);
+		selects_append_orders(&CONTEXT->ssql->sstr.selection, &attr, 0);
+	}
+	| ORDER BY ID DESC order_list {
+		RelAttr attr;
+		relation_attr_init(&attr, NULL, $3);
+		selects_append_orders(&CONTEXT->ssql->sstr.selection, &attr, 1);
+	}
+	| ORDER BY ID DOT ID ASC order_list {
+		RelAttr attr;
+		relation_attr_init(&attr, $3, $5);
+		selects_append_orders(&CONTEXT->ssql->sstr.selection, &attr, 0);
+	}
+	| ORDER BY ID DOT ID DESC order_list {
+		RelAttr attr;
+		relation_attr_init(&attr, $3, $5);
+		selects_append_orders(&CONTEXT->ssql->sstr.selection, &attr, 1);
+	}
+	;
+order_list:
+	/*empty*/
+	| COMMA ID order_list{
+		RelAttr attr;
+		relation_attr_init(&attr, NULL, $2);
+		selects_append_orders(&CONTEXT->ssql->sstr.selection, &attr, 0);
+	}
+	| COMMA ID DOT ID order_list {
+		RelAttr attr;
+		relation_attr_init(&attr, $2, $4);
+		selects_append_orders(&CONTEXT->ssql->sstr.selection, &attr, 0);
+	}
+	| COMMA ID ASC order_list {
+		RelAttr attr;
+		relation_attr_init(&attr, NULL, $2);
+		selects_append_orders(&CONTEXT->ssql->sstr.selection, &attr, 0);
+	}
+	| COMMA ID DESC order_list {
+		RelAttr attr;
+		relation_attr_init(&attr, NULL, $2);
+		selects_append_orders(&CONTEXT->ssql->sstr.selection, &attr, 1);
+	}
+	| COMMA ID DOT ID ASC order_list {
+		RelAttr attr;
+		relation_attr_init(&attr, $2, $4);
+		selects_append_orders(&CONTEXT->ssql->sstr.selection, &attr, 0);
+	}
+	| COMMA ID DOT ID DESC order_list {
+		RelAttr attr;
+		relation_attr_init(&attr, $2, $4);
+		selects_append_orders(&CONTEXT->ssql->sstr.selection, &attr, 1);
+	}
+	;
 load_data:
 		LOAD DATA INFILE SSS INTO TABLE ID SEMICOLON
 		{
