@@ -454,32 +454,67 @@ RC sort_tuple_sets(const Selects &selects, TupleSet &tuple_set, vector<int> &pos
   // 排序优先按照排序列表中第一个规则排，然后依次遵循后续规则
   // 但order list的顺序是倒序的，所以仍然从头开始排序等于先按后续规则排完倒着排到第一条规则
   TupleSchema tup_schema = tuple_set.get_schema();
-  for(int i = 0; i < order_num; ++i){
-    int field_index = 0;
-    for(; field_index < tup_schema.field_size(); ++field_index){
-      if((selects.orders[i].order_attr.relation_name == nullptr && strcmp(selects.orders[i].order_attr.attribute_name,tup_schema.field(field_index).field_name()) == 0)
-        || (strcmp(selects.orders[i].order_attr.relation_name,tup_schema.field(field_index).table_name()) == 0 && strcmp(selects.orders[i].order_attr.attribute_name,tup_schema.field(field_index).field_name()) == 0)){
+
+  // 先按第一列排序，之后对后续每列在上一列相同行之间排序
+  int field_index = 0;
+  for(; field_index < tup_schema.field_size(); ++field_index){
+    if((selects.orders[order_num-1].order_attr.relation_name == nullptr && strcmp(selects.orders[order_num-1].order_attr.attribute_name,tup_schema.field(field_index).field_name()) == 0)
+      || (strcmp(selects.orders[order_num-1].order_attr.relation_name,tup_schema.field(field_index).table_name()) == 0 && strcmp(selects.orders[order_num-1].order_attr.attribute_name,tup_schema.field(field_index).field_name()) == 0)){
+        break;
+      }
+  }
+  if(field_index == tup_schema.field_size()){
+    LOG_ERROR("%s %s not exist in table you select", selects.orders[order_num-1].order_attr.relation_name,selects.orders[order_num-1].order_attr.attribute_name);
+    return RC::SCHEMA_FIELD_MISSING;
+  }
+
+  // 直接对整个tuple set进行排序的话如果tuple set有很多个元组，对二维vector排序会产生大量
+  // 时间空间开销，因此选择对一个下标对应数组排序，需要相应修改tuple print函数的输出方式
+  if(selects.orders[order_num-1].order_type == 0){
+    // asc 递增打印
+    sort(pos_to_sortfunc.begin(), pos_to_sortfunc.end(), [&](int a, int b){
+      return tuple_set.get(a).get(field_index).compare(tuple_set.get(b).get(field_index)) < 0;
+    });
+  }else{
+    // desc 递减打印
+    sort(pos_to_sortfunc.begin(), pos_to_sortfunc.end(), [&](int a, int b){
+      return tuple_set.get(a).get(field_index).compare(tuple_set.get(b).get(field_index)) > 0;
+    });
+  }
+ 
+  for(int i = order_num - 2; i > -1; --i){
+    int field_index_2 = 0;
+    for(; field_index_2 < tup_schema.field_size(); ++field_index_2){
+      if((selects.orders[i].order_attr.relation_name == nullptr && strcmp(selects.orders[i].order_attr.attribute_name,tup_schema.field(field_index_2).field_name()) == 0)
+        || (strcmp(selects.orders[i].order_attr.relation_name,tup_schema.field(field_index_2).table_name()) == 0 && strcmp(selects.orders[i].order_attr.attribute_name,tup_schema.field(field_index_2).field_name()) == 0)){
           break;
         }
     }
-    if(field_index == tup_schema.field_size()){
+    if(field_index_2 == tup_schema.field_size()){
       LOG_ERROR("%s %s not exist in table you select", selects.orders[i].order_attr.relation_name,selects.orders[i].order_attr.attribute_name);
       return RC::SCHEMA_FIELD_MISSING;
     }
+    
+    int start = 0, end = 0;
 
-    // 直接对整个tuple set进行排序的话如果tuple set有很多个元组，对二维vector排序会产生大量
-    // 时间空间开销，因此选择对一个下标对应数组排序，需要相应修改tuple print函数的输出方式
-    if(selects.orders[i].order_type == 0){
-      // asc 递增打印
-      sort(pos_to_sortfunc.begin(), pos_to_sortfunc.end(), [&](int a, int b){
-        return tuple_set.get(a).get(field_index).compare(tuple_set.get(b).get(field_index)) < 0;
-      });
-    }else{
-      // desc 递减打印
-      sort(pos_to_sortfunc.begin(), pos_to_sortfunc.end(), [&](int a, int b){
-        return tuple_set.get(a).get(field_index).compare(tuple_set.get(b).get(field_index)) > 0;
-      });
+    while(end < tuple_num){
+      while(end < tuple_num && tuple_set.get(end).get(field_index).compare(tuple_set.get(start).get(field_index)) == 0)
+        ++end;
+      if(selects.orders[i].order_type == 0){
+        // asc 递增打印
+        sort(pos_to_sortfunc.begin()+start, pos_to_sortfunc.begin()+end, [&](int a, int b){
+          return tuple_set.get(a).get(field_index_2).compare(tuple_set.get(b).get(field_index_2)) < 0;
+        });
+      }else{
+        // desc 递减打印
+        sort(pos_to_sortfunc.begin()+start, pos_to_sortfunc.begin()+end, [&](int a, int b){
+          return tuple_set.get(a).get(field_index_2).compare(tuple_set.get(b).get(field_index_2)) > 0;
+        });
+      }
+      start = end;
     }
+
+    field_index = field_index_2;
   }
   return RC::SUCCESS;
 }
