@@ -498,8 +498,9 @@ RC sort_tuple_sets(const Selects &selects, TupleSet &tuple_set, vector<int> &pos
     int start = 0, end = 0;
 
     while(end < tuple_num){
-      while(end < tuple_num && tuple_set.get(end).get(field_index).compare(tuple_set.get(start).get(field_index)) == 0)
+      while(end < tuple_num && tuple_set.get(pos_to_sortfunc[end]).get(field_index).compare(tuple_set.get(pos_to_sortfunc[start]).get(field_index)) == 0)
         ++end;
+      
       if(selects.orders[i].order_type == 0){
         // asc 递增打印
         sort(pos_to_sortfunc.begin()+start, pos_to_sortfunc.begin()+end, [&](int a, int b){
