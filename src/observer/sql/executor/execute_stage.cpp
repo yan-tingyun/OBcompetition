@@ -39,6 +39,7 @@ using namespace std;
 
 RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, const char *table_name, SelectExeNode &select_node);
 RC sort_tuple_sets(const Selects &selects, TupleSet &tuple_set, vector<int> &pos_to_sortfunc);
+void sortfunc_dfs(const Selects &selects, TupleSet &tuple_set, vector<int> &pos_to_sortfunc,vector<int> &order_field_index, int start, int end, int cur);
 
 //! Constructor
 ExecuteStage::ExecuteStage(const char *tag) : Stage(tag) {}
@@ -451,73 +452,73 @@ RC sort_tuple_sets(const Selects &selects, TupleSet &tuple_set, vector<int> &pos
   int tuple_num = tuple_set.size();
 
   // 校验，1、单标查询、多表排序，2、多表查询，排序不带表名，3、多表查询，排序出现非这些表中的表名，
-  // 排序优先按照排序列表中第一个规则排，然后依次遵循后续规则
-  // 但order list的顺序是倒序的，所以仍然从头开始排序等于先按后续规则排完倒着排到第一条规则
   TupleSchema tup_schema = tuple_set.get_schema();
 
-  // 先按第一列排序，之后对后续每列在上一列相同行之间排序
-  int field_index = 0;
-  for(; field_index < tup_schema.field_size(); ++field_index){
-    if((selects.orders[order_num-1].order_attr.relation_name == nullptr && strcmp(selects.orders[order_num-1].order_attr.attribute_name,tup_schema.field(field_index).field_name()) == 0)
-      || (strcmp(selects.orders[order_num-1].order_attr.relation_name,tup_schema.field(field_index).table_name()) == 0 && strcmp(selects.orders[order_num-1].order_attr.attribute_name,tup_schema.field(field_index).field_name()) == 0)){
-        break;
-      }
-  }
-  if(field_index == tup_schema.field_size()){
-    LOG_ERROR("%s %s not exist in table you select", selects.orders[order_num-1].order_attr.relation_name,selects.orders[order_num-1].order_attr.attribute_name);
-    return RC::SCHEMA_FIELD_MISSING;
+  // 先对order list校验，并将每个order的属性在schema field vector里的位置找到
+  vector<int> order_field_index(order_num);
+  for(int i = order_num-1; i > -1; --i){
+    int field_index = 0;
+    for(; field_index < tup_schema.field_size(); ++field_index){
+      if((selects.orders[i].order_attr.relation_name == nullptr && strcmp(selects.orders[i].order_attr.attribute_name,tup_schema.field(field_index).field_name()) == 0)
+        || (strcmp(selects.orders[i].order_attr.relation_name,tup_schema.field(field_index).table_name()) == 0 && strcmp(selects.orders[i].order_attr.attribute_name,tup_schema.field(field_index).field_name()) == 0)){
+          order_field_index[i] = field_index;
+          break;
+        }
+    }
+    if(field_index == tup_schema.field_size()){
+      LOG_ERROR("%s %s not exist in table you select", selects.orders[i].order_attr.relation_name,selects.orders[i].order_attr.attribute_name);
+      return RC::SCHEMA_FIELD_MISSING;
+    }
   }
 
+  // 先按第一列排序，之后对后续每列在上一列相同行之间排序
+  
   // 直接对整个tuple set进行排序的话如果tuple set有很多个元组，对二维vector排序会产生大量
   // 时间空间开销，因此选择对一个下标对应数组排序，需要相应修改tuple print函数的输出方式
   if(selects.orders[order_num-1].order_type == 0){
     // asc 递增打印
     sort(pos_to_sortfunc.begin(), pos_to_sortfunc.end(), [&](int a, int b){
-      return tuple_set.get(a).get(field_index).compare(tuple_set.get(b).get(field_index)) < 0;
+      return tuple_set.get(a).get(order_field_index[order_num-1]).compare(tuple_set.get(b).get(order_field_index[order_num-1])) < 0;
     });
   }else{
     // desc 递减打印
     sort(pos_to_sortfunc.begin(), pos_to_sortfunc.end(), [&](int a, int b){
-      return tuple_set.get(a).get(field_index).compare(tuple_set.get(b).get(field_index)) > 0;
+      return tuple_set.get(a).get(order_field_index[order_num-1]).compare(tuple_set.get(b).get(order_field_index[order_num-1])) > 0;
     });
   }
- 
-  for(int i = order_num - 2; i > -1; --i){
-    int field_index_2 = 0;
-    for(; field_index_2 < tup_schema.field_size(); ++field_index_2){
-      if((selects.orders[i].order_attr.relation_name == nullptr && strcmp(selects.orders[i].order_attr.attribute_name,tup_schema.field(field_index_2).field_name()) == 0)
-        || (strcmp(selects.orders[i].order_attr.relation_name,tup_schema.field(field_index_2).table_name()) == 0 && strcmp(selects.orders[i].order_attr.attribute_name,tup_schema.field(field_index_2).field_name()) == 0)){
-          break;
-        }
-    }
-    if(field_index_2 == tup_schema.field_size()){
-      LOG_ERROR("%s %s not exist in table you select", selects.orders[i].order_attr.relation_name,selects.orders[i].order_attr.attribute_name);
-      return RC::SCHEMA_FIELD_MISSING;
-    }
-    
-    int start = 0, end = 0;
+  int start = 0, end = 0;
 
-    while(end < tuple_num){
-      while(end < tuple_num && tuple_set.get(pos_to_sortfunc[end]).get(field_index).compare(tuple_set.get(pos_to_sortfunc[start]).get(field_index)) == 0)
-        ++end;
-      
-      if(selects.orders[i].order_type == 0){
-        // asc 递增打印
-        sort(pos_to_sortfunc.begin()+start, pos_to_sortfunc.begin()+end, [&](int a, int b){
-          return tuple_set.get(a).get(field_index_2).compare(tuple_set.get(b).get(field_index_2)) < 0;
-        });
-      }else{
-        // desc 递减打印
-        sort(pos_to_sortfunc.begin()+start, pos_to_sortfunc.begin()+end, [&](int a, int b){
-          return tuple_set.get(a).get(field_index_2).compare(tuple_set.get(b).get(field_index_2)) > 0;
-        });
-      }
-      start = end;
-    }
-
-    field_index = field_index_2;
+  while(end < tuple_num){
+    while(end < tuple_num && tuple_set.get(pos_to_sortfunc[end]).get(order_field_index[order_num-1]).compare(tuple_set.get(pos_to_sortfunc[start]).get(order_field_index[order_num-1])) == 0)
+      ++end;
+    sortfunc_dfs(selects, tuple_set, pos_to_sortfunc, order_field_index, start, end, order_num - 2);    
+    start = end;
   }
   return RC::SUCCESS;
+}
+
+void sortfunc_dfs(const Selects &selects, TupleSet &tuple_set, vector<int> &pos_to_sortfunc,vector<int> &order_field_index, int start, int end, int cur){
+  if(cur == -1 || end-start == 1)
+    return;
+  if(selects.orders[cur].order_type == 0){
+    // asc 递增打印
+    sort(pos_to_sortfunc.begin()+start, pos_to_sortfunc.begin()+end, [&](int a, int b){
+      return tuple_set.get(a).get(order_field_index[cur]).compare(tuple_set.get(b).get(order_field_index[cur])) < 0;
+    });
+  }else{
+    // desc 递减打印
+    sort(pos_to_sortfunc.begin()+start, pos_to_sortfunc.begin()+end, [&](int a, int b){
+      return tuple_set.get(a).get(order_field_index[cur]).compare(tuple_set.get(b).get(order_field_index[cur])) > 0;
+    });
+  }
+  int s = start, e = start;
+
+  while(e < end){
+    while(e < end && tuple_set.get(pos_to_sortfunc[e]).get(order_field_index[cur]).compare(tuple_set.get(pos_to_sortfunc[s]).get(order_field_index[cur])) == 0)
+      ++end;
+    sortfunc_dfs(selects, tuple_set, pos_to_sortfunc, order_field_index, s, e, cur - 1);    
+    s = e;
+  }
 }
 
 static RC schema_add_field(Table *table, const char *field_name, TupleSchema &schema) {
