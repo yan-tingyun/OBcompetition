@@ -498,7 +498,7 @@ RC sort_tuple_sets(const Selects &selects, TupleSet &tuple_set, vector<int> &pos
 }
 
 void sortfunc_dfs(const Selects &selects, TupleSet &tuple_set, vector<int> &pos_to_sortfunc,vector<int> &order_field_index, int start, int end, int cur){
-  if(cur == -1 || end-start == 1)
+  if(cur < 0 || end-start == 1)
     return;
   if(selects.orders[cur].order_type == 0){
     // asc 递增打印
@@ -515,7 +515,7 @@ void sortfunc_dfs(const Selects &selects, TupleSet &tuple_set, vector<int> &pos_
 
   while(e < end){
     while(e < end && tuple_set.get(pos_to_sortfunc[e]).get(order_field_index[cur]).compare(tuple_set.get(pos_to_sortfunc[s]).get(order_field_index[cur])) == 0)
-      ++end;
+      ++e;
     sortfunc_dfs(selects, tuple_set, pos_to_sortfunc, order_field_index, s, e, cur - 1);    
     s = e;
   }
