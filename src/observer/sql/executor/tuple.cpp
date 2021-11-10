@@ -318,7 +318,7 @@ void TupleSet::clear() {
   schema_.clear();
 }
 
-void TupleSet::print(const Selects &select,std::ostream &os) const {
+void TupleSet::print(const Selects &select,std::ostream &os, const vector<int> &pos_to_sortfunc) const {
   if (schema_.fields().empty()) {
     LOG_WARN("Got empty schema");
     return;
@@ -505,8 +505,8 @@ void TupleSet::print(const Selects &select,std::ostream &os) const {
   }else{
     schema_.print(select,os);
 
-    for (const Tuple &item : tuples_) {
-      const std::vector<std::shared_ptr<TupleValue>> &values = item.values();
+    for(int i = 0; i < tuples_.size(); ++i){
+      const std::vector<std::shared_ptr<TupleValue>> &values = tuples_[pos_to_sortfunc[i]].values();
       for (std::vector<std::shared_ptr<TupleValue>>::const_iterator iter = values.begin(), end = --values.end();
             iter != end; ++iter) {
         (*iter)->to_string(os);
@@ -519,14 +519,14 @@ void TupleSet::print(const Selects &select,std::ostream &os) const {
 }
 
 
-void TupleSet::print_for_join(const Selects &selects, ostream &os, unordered_map<string, pair<int,int>> &table_to_valuepos) const {
+void TupleSet::print_for_join(const Selects &selects, ostream &os, unordered_map<string, pair<int,int>> &table_to_valuepos, const vector<int> &pos_to_sortfunc) const {
   // vector<pair<int,int>> 
   // 先遍历结果集的表头，然后将表头每列对应数据列存在pair数组里，
   vector<pair<int, int>> print_col;
   schema_.print_for_multitables(os, print_col,table_to_valuepos, selects);
 
-  for (const Tuple &item : tuples_) {
-    const std::vector<std::shared_ptr<TupleValue>> &values = item.values();
+  for(int i = 0; i < tuples_.size(); ++i){
+    const std::vector<std::shared_ptr<TupleValue>> &values = tuples_[pos_to_sortfunc[i]].values();
     for(int i = 0; i < print_col.size() - 1; ++i){
       for(int j = print_col[i].first; j < print_col[i].second; ++j){
         values[j]->to_string(os);

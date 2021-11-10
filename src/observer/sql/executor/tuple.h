@@ -161,9 +161,9 @@ public:
   const Tuple &get(int index) const;
   const std::vector<Tuple> &tuples() const;
 
-  void print(const Selects &select,std::ostream &os) const;
+  void print(const Selects &select,std::ostream &os, const vector<int> &pos_to_sortfunc) const;
 
-  void print_for_join(const Selects &selects, std::ostream &os, unordered_map<string, pair<int,int>> &table_to_valuepos) const;
+  void print_for_join(const Selects &selects, std::ostream &os, unordered_map<string, pair<int,int>> &table_to_valuepos, const vector<int> &pos_to_sortfunc) const;
 
 private:
   std::vector<Tuple> tuples_;

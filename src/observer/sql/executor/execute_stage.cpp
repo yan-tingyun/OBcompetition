@@ -16,6 +16,7 @@ See the Mulan PSL v2 for more details. */
 #include <sstream>
 
 #include "execute_stage.h"
+#include "algorithm"
 
 #include "common/io/io.h"
 #include "common/log/log.h"
@@ -37,6 +38,7 @@ using namespace common;
 using namespace std;
 
 RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, const char *table_name, SelectExeNode &select_node);
+RC sort_tuple_sets(const Selects &selects, TupleSet &tuple_set, vector<int> &pos_to_sortfunc);
 
 //! Constructor
 ExecuteStage::ExecuteStage(const char *tag) : Stage(tag) {}
@@ -315,9 +317,21 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   Session *session = session_event->get_client()->session;
   Trx *trx = session->current_trx();
   const Selects &selects = sql->sstr.selection;
+
+  // order list合法性校验 (其实应该先对属性、判断条件的合法性初步校验，可以省去后面的步骤)
+  // 多表查询时，对order by的属性初步校验，如果不带表名则直接结束返回failure
+  if(selects.relation_num > 1){
+    for(size_t i = 0; i < selects.order_num; ++i){
+      if(selects.orders[i].order_attr.relation_name == nullptr){
+        LOG_ERROR("attribute : %s does not have relation name with it!", selects.orders[i].order_attr.attribute_name);
+        end_trx_if_need(session, trx, false);
+        return RC::SCHEMA_TABLE_LOST;
+      }
+    }
+  }
+
   // 把所有的表和只跟这张表关联的condition都拿出来，生成最底层的select 执行节点
   std::vector<SelectExeNode *> select_nodes;
-
 
   // 针对关系数组里的每张表，分别取出属性列表里要查询的属性
   // 对于每张表分别生成执行节点，判断
@@ -337,7 +351,6 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
     }
     select_nodes.push_back(select_node);
   }
-
 
   if (select_nodes.empty()) {
     LOG_ERROR("No table given");
@@ -382,17 +395,47 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
     
     // 对tuple set按照order list排序
     // 注意校验合法性
+    // 仍需判断是否为聚合函数计算，是则不需要排序操作，即order by无效
+    vector<int> pos_to_sortfunc(tupleset_join.size());
+    for(int i = 0; i < tupleset_join.size(); ++i)
+      pos_to_sortfunc[i] = i;
+
+    if(selects.order_num > 0){
+      rc = sort_tuple_sets(selects, tupleset_join, pos_to_sortfunc);
+      if(rc != RC::SUCCESS){
+        for (SelectExeNode *& tmp_node: select_nodes) {
+          delete tmp_node;
+        }
+        session_event->set_response(ss.str());
+        end_trx_if_need(session, trx, true);
+        return rc;
+      }
+    }
 
     // 打印结果思路：
     // unordered_map中存储了表名与涉及到的字段在连接表中的下标对应关系，分别在select attr_list from中的attrlist在连接表中做投影，然后输出结果
-    tupleset_join.print_for_join(selects, ss, table_to_valuepos);
+    tupleset_join.print_for_join(selects, ss, table_to_valuepos,pos_to_sortfunc);
 
   } else {
     // 对tuple排序
     // 注意校验合法性
+    vector<int> pos_to_sortfunc(tuple_sets.front().size());
+    for(int i = 0; i < tuple_sets.front().size(); ++i)
+      pos_to_sortfunc[i] = i;
+    if(selects.order_num > 0){
+      rc = sort_tuple_sets(selects, tuple_sets.front(), pos_to_sortfunc);
+      if(rc != RC::SUCCESS){
+        for (SelectExeNode *& tmp_node: select_nodes) {
+          delete tmp_node;
+        }
+        session_event->set_response(ss.str());
+        end_trx_if_need(session, trx, true);
+        return rc;
+      }
+    }
 
     // 当前只查询一张表，直接返回结果即可
-    tuple_sets.front().print(selects,ss);
+    tuple_sets.front().print(selects,ss,pos_to_sortfunc);
   }
 
   for (SelectExeNode *& tmp_node: select_nodes) {
@@ -403,14 +446,43 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   return rc;
 }
 
-RC sort_tuple_sets(Selects *selects, vector<TupleSet> &tuple_sets){
-  int order_num = selects->order_num;
-  int tuple_num = tuple_sets.size();
+RC sort_tuple_sets(const Selects &selects, TupleSet &tuple_set, vector<int> &pos_to_sortfunc){
+  int order_num = selects.order_num;
+  int tuple_num = tuple_set.size();
 
   // 校验，1、单标查询、多表排序，2、多表查询，排序不带表名，3、多表查询，排序出现非这些表中的表名，
+  // 排序优先按照排序列表中第一个规则排，然后依次遵循后续规则
+  // 但order list的顺序是倒序的，所以仍然从头开始排序等于先按后续规则排完倒着排到第一条规则
+  TupleSchema tup_schema = tuple_set.get_schema();
+  for(int i = 0; i < order_num; ++i){
+    int field_index = 0;
+    for(; field_index < tup_schema.field_size(); ++field_index){
+      if((selects.orders[i].order_attr.relation_name == nullptr && strcmp(selects.orders[i].order_attr.attribute_name,tup_schema.field(field_index).field_name()) == 0)
+        || (strcmp(selects.orders[i].order_attr.relation_name,tup_schema.field(field_index).table_name()) == 0 && strcmp(selects.orders[i].order_attr.attribute_name,tup_schema.field(field_index).field_name()) == 0)){
+          break;
+        }
+    }
+    if(field_index == tup_schema.field_size()){
+      LOG_ERROR("%s %s not exist in table you select", selects.orders[i].order_attr.relation_name,selects.orders[i].order_attr.attribute_name);
+      return RC::SCHEMA_FIELD_MISSING;
+    }
 
+    // 直接对整个tuple set进行排序的话如果tuple set有很多个元组，对二维vector排序会产生大量
+    // 时间空间开销，因此选择对一个下标对应数组排序，需要相应修改tuple print函数的输出方式
+    if(selects.orders[i].order_type == 0){
+      // asc 递增打印
+      sort(pos_to_sortfunc.begin(), pos_to_sortfunc.end(), [&](int a, int b){
+        return tuple_set.get(a).get(field_index).compare(tuple_set.get(b).get(field_index)) < 0;
+      });
+    }else{
+      // desc 递减打印
+      sort(pos_to_sortfunc.begin(), pos_to_sortfunc.end(), [&](int a, int b){
+        return tuple_set.get(a).get(field_index).compare(tuple_set.get(b).get(field_index)) > 0;
+      });
+    }
+  }
+  return RC::SUCCESS;
 }
-
 
 static RC schema_add_field(Table *table, const char *field_name, TupleSchema &schema) {
   const FieldMeta *field_meta = table->table_meta().field(field_name);
@@ -464,9 +536,15 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
         if(selects.aggre_type[i] == NOTAGG)
           break; // 没有校验，给出* 之后，再写字段的错误
 
-
       } else {
         // select tabel.attr from, select table1.attr from t1,t2
+
+        // 校验是否为多表查询，多表查询不能不带表名
+        if(selects.relation_num > 1 && nullptr == attr.relation_name){
+          LOG_ERROR("attribute : %s does not have relation name with it!", attr.attribute_name);
+          return RC::SCHEMA_TABLE_LOST;
+        }
+
 
         // 为了聚合函数的实现
         // 此实现存在小问题：检查当前属性是否存在过 检查了两次，一次在下方，第二次在schema_add_field函数中，但数组很小，check double的代价不大
@@ -489,7 +567,6 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
         if(!if_exist)
           schema.aggtype_pos.push_back({schema.field_size(),selects.aggre_type[i]});
 
-
         // 列出这张表相关字段
         RC rc = schema_add_field(table, attr.attribute_name, schema);
         if (rc != RC::SUCCESS) {
@@ -506,8 +583,14 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
   }
 
   // 排序列表中 出现的属性字段也需要选择出来
-
-  
+  for(size_t i = 0; i < selects.order_num; ++i){
+    if(match_table(selects,selects.orders[i].order_attr.relation_name ,table_name)){
+      RC rc = schema_add_field(table, selects.orders[i].order_attr.attribute_name, schema);
+      if (rc != RC::SUCCESS) {
+        return rc;
+      }
+    }
+  }
 
   // 找出仅与此表相关的过滤条件, 或者都是值的过滤条件
   // 对于多表查询来讲还需要判断涉及两个表的过滤条件，这个需要在生成tuple set做笛卡尔积运算的时候完成
@@ -542,7 +625,6 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
         }
       }
     }
-
 
     if ((condition.left_is_attr == 0 && condition.right_is_attr == 0) || // 两边都是值
         (condition.left_is_attr == 1 && condition.right_is_attr == 0 && match_table(selects, condition.left_attr.relation_name, table_name)) ||  // 左边是属性右边是值
