@@ -86,6 +86,8 @@ QUOTE            [\'\"]
 [Bb][Yy]								RETURN_TOKEN(BY);
 [Aa][Ss][Cc]							RETURN_TOKEN(ASC); // DESC have existed in top 
 
+[Gg][Rr][Oo][Uu][Pp]					RETURN_TOKEN(GROUP);
+
 
 {ID}							                       yylval->string=strdup(yytext); RETURN_TOKEN(ID);
 "("								                       RETURN_TOKEN(LBRACE);

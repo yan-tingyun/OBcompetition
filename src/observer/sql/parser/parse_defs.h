@@ -83,6 +83,9 @@ typedef struct {
                                     // 如果是聚合函数，那么将聚合函数的类型与属性对应，下标一一对应
   Order orders[MAX_NUM]; // order list
   size_t order_num;
+
+  RelAttr group_bys[MAX_NUM]; // group by list
+  size_t group_by_num;
 } Selects;
 
 // struct of insert
@@ -216,6 +219,7 @@ void selects_append_relation(Selects *selects, const char *relation_name);
 void selects_append_conditions(Selects *selects, Condition conditions[], size_t condition_num);
 void selects_append_aggretype(Selects *selects, AggreType aggre_type);
 void selects_append_orders(Selects *selects, RelAttr *rel_attr, size_t order_type);
+void selects_append_group_by_attribute(Selects *selects, RelAttr *rel_attr);
 void orders_destroy(Order *order);
 void selects_destroy(Selects *selects);
 

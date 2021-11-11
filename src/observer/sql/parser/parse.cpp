@@ -110,6 +110,11 @@ void selects_init(Selects *selects, ...);
 void selects_append_attribute(Selects *selects, RelAttr *rel_attr) {
   selects->attributes[selects->attr_num++] = *rel_attr;
 }
+
+void selects_append_group_by_attribute(Selects *selects, RelAttr *rel_attr){
+  selects->group_bys[selects->group_by_num++] = *rel_attr;
+}
+
 void selects_append_aggretype(Selects *selects, AggreType aggre_type){
   selects->aggre_type[selects->attr_num] = aggre_type;
 }
@@ -143,6 +148,11 @@ void selects_destroy(Selects *selects) {
     selects->aggre_type[i] = NOTAGG;
   }
   selects->attr_num = 0;
+
+  for (size_t i = 0; i < selects->group_by_num; i++) {
+    relation_attr_destroy(&selects->group_bys[i]);
+  }
+  selects->group_by_num = 0;
 
   for (size_t i = 0; i < selects->relation_num; i++) {
     free(selects->relations[i]);
