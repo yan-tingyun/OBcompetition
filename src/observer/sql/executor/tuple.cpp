@@ -65,6 +65,18 @@ void Tuple::join_tuples(const Tuple &tuple_oth){
   values_.insert(values_.end(),tuple_oth.values().begin(), tuple_oth.values().end());
 }
 
+void Tuple::set_tupleVal(float val, int index){
+  values_[index] = shared_ptr<TupleValue>(new FloatValue(val));
+}
+
+void Tuple::set_tupleVal(int val, int index){
+  values_[index] = shared_ptr<TupleValue>(new IntValue(val));
+}
+
+void Tuple::set_tupleVal(const shared_ptr<TupleValue> &val, int index){
+  values_[index] = val;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 std::string TupleField::to_string() const {
@@ -540,6 +552,39 @@ void TupleSet::print_for_join(const Selects &selects, ostream &os, unordered_map
     }
     values[print_col.back().second-1]->to_string(os);
     os << endl;
+  }
+}
+
+void TupleSet::print_for_group(const Selects &selects, std::ostream &os,const vector<int> &pos_to_sortfunc){
+  // 打印表头
+  if (schema_.field_size() == 0) {
+    os << "No schema";
+    return;
+  }
+  const vector<TupleField> fields = schema_.fields();
+
+  for (std::vector<TupleField>::const_iterator iter = fields.begin(), end = --fields.end();
+      iter != end; ++iter) {
+    if (selects.relation_num > 1) {
+      os << iter->table_name() << ".";
+    }
+    os << iter->field_name() << " | ";
+  }
+
+  if (selects.relation_num > 1) {
+    os << fields.back().table_name() << ".";
+  }
+  os << fields.back().field_name() << std::endl;
+
+  for(int i = 0; i < tuples_.size(); ++i){
+    const std::vector<std::shared_ptr<TupleValue>> &values = tuples_[pos_to_sortfunc[i]].values();
+    for (std::vector<std::shared_ptr<TupleValue>>::const_iterator iter = values.begin(), end = --values.end();
+          iter != end; ++iter) {
+      (*iter)->to_string(os);
+      os << " | ";
+    }
+    values.back()->to_string(os);
+    os << std::endl;
   }
 }
 

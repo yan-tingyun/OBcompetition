@@ -40,6 +40,7 @@ using namespace std;
 RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, const char *table_name, SelectExeNode &select_node);
 RC sort_tuple_sets(const Selects &selects, TupleSet &tuple_set, vector<int> &pos_to_sortfunc);
 void sortfunc_dfs(const Selects &selects, TupleSet &tuple_set, vector<int> &pos_to_sortfunc,vector<int> &order_field_index, int start, int end, int cur);
+RC group_by_func(const Selects &selects, TupleSet &tuple_set);
 
 //! Constructor
 ExecuteStage::ExecuteStage(const char *tag) : Stage(tag) {}
@@ -319,6 +320,18 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   Trx *trx = session->current_trx();
   const Selects &selects = sql->sstr.selection;
 
+  // group by list合法性校验 (其实应该先对属性、判断条件的合法性初步校验，可以省去后面的步骤)
+  // 多表查询时，对group by的属性初步校验，如果不带表名则直接结束返回failure
+  if(selects.relation_num > 1){
+    for(size_t i = 0; i < selects.group_by_num; ++i){
+      if(selects.group_bys[i].relation_name == nullptr){
+        LOG_ERROR("attribute : %s does not have relation name with it!", selects.group_bys[i].attribute_name);
+        end_trx_if_need(session, trx, false);
+        return RC::SCHEMA_TABLE_LOST;
+      }
+    }
+  }
+
   // order list合法性校验 (其实应该先对属性、判断条件的合法性初步校验，可以省去后面的步骤)
   // 多表查询时，对order by的属性初步校验，如果不带表名则直接结束返回failure
   if(selects.relation_num > 1){
@@ -393,14 +406,28 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
       end_trx_if_need(session, trx, true);
       return rc;
     }
-    
-    // 对tuple set按照order list排序
-    // 注意校验合法性
-    // 仍需判断是否为聚合函数计算，是则不需要排序操作，即order by无效
+
+    // order by之前先做group by，多表group by将删除生成的临时tuple set生成新的结果集
+    if(selects.group_by_num > 0){
+      rc = group_by_func(selects, tupleset_join);
+      if(rc != RC::SUCCESS){
+        for (SelectExeNode *& tmp_node: select_nodes) {
+          delete tmp_node;
+        }
+        session_event->set_response(ss.str());
+        end_trx_if_need(session, trx, true);
+        return rc;
+      }
+    } 
+
+    // 为了便于order by的实现，不在内存中大批量移动tuple，选择移动下标数组，按照下标数组的顺序打印结果
     vector<int> pos_to_sortfunc(tupleset_join.size());
     for(int i = 0; i < tupleset_join.size(); ++i)
       pos_to_sortfunc[i] = i;
 
+    // 对tuple set按照order list排序
+    // 注意校验合法性
+    // 仍需判断是否为聚合函数计算，是则不需要排序操作，即order by无效(未做)
     if(selects.order_num > 0){
       rc = sort_tuple_sets(selects, tupleset_join, pos_to_sortfunc);
       if(rc != RC::SUCCESS){
@@ -415,9 +442,24 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
 
     // 打印结果思路：
     // unordered_map中存储了表名与涉及到的字段在连接表中的下标对应关系，分别在select attr_list from中的attrlist在连接表中做投影，然后输出结果
-    tupleset_join.print_for_join(selects, ss, table_to_valuepos,pos_to_sortfunc);
-
+    if(selects.group_by_num == 0)
+      tupleset_join.print_for_join(selects, ss, table_to_valuepos,pos_to_sortfunc);
+    else
+      tupleset_join.print_for_group(selects,ss,pos_to_sortfunc);
   } else {
+    if(selects.group_by_num > 0){
+      rc = group_by_func(selects, tuple_sets.front());
+      if(rc != RC::SUCCESS){
+        for (SelectExeNode *& tmp_node: select_nodes) {
+          delete tmp_node;
+        }
+        session_event->set_response(ss.str());
+        end_trx_if_need(session, trx, true);
+        return rc;
+      }
+    } 
+
+
     // 对tuple排序
     // 注意校验合法性
     vector<int> pos_to_sortfunc(tuple_sets.front().size());
@@ -436,7 +478,10 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
     }
 
     // 当前只查询一张表，直接返回结果即可
-    tuple_sets.front().print(selects,ss,pos_to_sortfunc);
+    if(selects.group_by_num == 0)
+      tuple_sets.front().print(selects,ss,pos_to_sortfunc);
+    else
+      tuple_sets.front().print_for_group(selects,ss,pos_to_sortfunc);
   }
 
   for (SelectExeNode *& tmp_node: select_nodes) {
@@ -445,6 +490,301 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   session_event->set_response(ss.str());
   end_trx_if_need(session, trx, true);
   return rc;
+}
+
+RC group_by_func(const Selects &selects, TupleSet &tuple_set){
+  vector<int> group_by_pos(selects.group_by_num);
+  // 记录group by里的属性和tuple set里列的对应，便于找要聚合的列；
+
+  for(int i = selects.group_by_num-1; i > -1; --i){
+    if(selects.group_bys[i].relation_name == nullptr){
+      int index = tuple_set.get_schema().index_of_field(selects.relations[0],selects.group_bys[i].attribute_name);
+      if(index == -1){
+        LOG_ERROR("group by field not exist in table");
+        return RC::SCHEMA_FIELD_NOT_EXIST;
+      }
+      group_by_pos[selects.group_by_num-1-i] = index;
+    }else{
+      int index = tuple_set.get_schema().index_of_field(selects.group_bys[i].relation_name,selects.group_bys[i].attribute_name);
+      if(index == -1){
+        LOG_ERROR("group by field not exist in table");
+        return RC::SCHEMA_FIELD_NOT_EXIST;
+      }
+      group_by_pos[selects.group_by_num-1-i] = index;
+    }
+  }
+
+  // 投影与列下标对应前缀数组
+  vector<int> attr_to_tuple_pos(selects.attr_num);
+
+  vector<TupleField> new_fields;
+  // 新元组的field数据，便于直接打印
+  vector<pair<int, int>> attr_to_pos(selects.attr_num);
+  // 投影属性和元组中列对应关系
+  const vector<TupleField> fields = tuple_set.get_schema().fields();
+  for(int i = selects.attr_num - 1; i > -1; --i){
+    if(selects.aggre_type[i] == NOTAGG){
+      if(strcmp(selects.attributes[i].attribute_name, "*") == 0 && selects.attributes[i].relation_name == nullptr){
+        attr_to_pos[i] = {new_fields.size(), fields.size()};
+        new_fields.insert(new_fields.end(), fields.begin(), fields.end());
+        attr_to_tuple_pos[i] = new_fields.size();
+      }else if(strcmp(selects.attributes[i].attribute_name, "*") == 0 && selects.attributes[i].relation_name != nullptr){
+        int start, end;
+        int j = 0;
+        for(; j < fields.size(); ++j){
+          if(strcmp(fields[j].table_name(), selects.attributes[i].relation_name) == 0){
+            start = j;
+            end = j + 1;
+            while(end < fields.size() && strcmp(fields[end].table_name(), selects.attributes[i].relation_name) == 0)
+              ++end;
+            attr_to_pos[i] = {start, end};
+            new_fields.insert(new_fields.end(), fields.begin()+start, fields.begin()+end);
+            attr_to_tuple_pos[i] = new_fields.size();
+            break;
+          }
+        }
+        if(j == fields.size()){
+          LOG_ERROR("table lost");
+          return RC::SCHEMA_TABLE_LOST;
+        }
+      }else if(selects.attributes[i].relation_name == nullptr){
+        int index = tuple_set.get_schema().index_of_field(selects.relations[0], selects.attributes[i].attribute_name);
+        if(index == -1){
+          LOG_ERROR("field not exist");
+          return RC::SCHEMA_FIELD_NOT_EXIST;
+        }
+        attr_to_pos[i] = {index, index+1};
+        new_fields.emplace_back(tuple_set.get_schema().field(index));
+        attr_to_tuple_pos[i] = new_fields.size();
+      }else{
+        int index = tuple_set.get_schema().index_of_field(selects.attributes[i].relation_name, selects.attributes[i].attribute_name);
+        if(index == -1){
+          LOG_ERROR("field not exist");
+          return RC::SCHEMA_FIELD_NOT_EXIST;
+        }
+        attr_to_pos[i] = {index, index+1};
+        new_fields.emplace_back(tuple_set.get_schema().field(index));
+        attr_to_tuple_pos[i] = new_fields.size();
+      }
+    }else{
+      int index = -1;
+      if(strcmp(selects.attributes[i].attribute_name, "*") != 0){
+        if(selects.attributes[i].relation_name == nullptr){
+          index = tuple_set.get_schema().index_of_field(selects.relations[0], selects.attributes[i].attribute_name);
+          if(index == -1){
+            LOG_ERROR("field not exist");
+            return RC::SCHEMA_FIELD_NOT_EXIST;
+          }
+        }else{
+          index = tuple_set.get_schema().index_of_field(selects.attributes[i].relation_name, selects.attributes[i].attribute_name);
+          if(index == -1){
+            LOG_ERROR("field not exist");
+            return RC::SCHEMA_FIELD_NOT_EXIST;
+          }
+        }
+      }
+
+      switch(selects.aggre_type[i]){
+        case AVG_F:{
+          if(selects.attributes[i].relation_name == nullptr){
+            string avg_attr = selects.attributes[i].attribute_name;
+            avg_attr = "AVG(" + avg_attr + ")";
+            TupleField f = TupleField(FLOATS,selects.relations[0],avg_attr.c_str());
+            new_fields.emplace_back(f);
+          }else{
+            string avg_relat = selects.attributes[i].relation_name;
+            avg_relat = "AVG(" + avg_relat;
+            string avg_attr = selects.attributes[i].attribute_name;
+            avg_attr = avg_attr + ")";
+            TupleField f = TupleField(FLOATS,selects.attributes[i].relation_name,avg_attr.c_str());
+            new_fields.emplace_back(f);
+          }
+          attr_to_pos[i] = {index, index+1};
+          attr_to_tuple_pos[i] = new_fields.size();
+        }
+        break;
+        case MAX_F : {
+          if(selects.attributes[i].relation_name == nullptr){
+            string avg_attr = selects.attributes[i].attribute_name;
+            avg_attr = "MAX(" + avg_attr + ")";
+            TupleField f = TupleField(tuple_set.get_schema().field(index).type(),selects.relations[0],avg_attr.c_str());
+            new_fields.emplace_back(f);
+          }else{
+            string avg_relat = selects.attributes[i].relation_name;
+            avg_relat = "MAX(" + avg_relat;
+            string avg_attr = selects.attributes[i].attribute_name;
+            avg_attr = avg_attr + ")";
+            TupleField f = TupleField(tuple_set.get_schema().field(index).type(),selects.attributes[i].relation_name,avg_attr.c_str());
+            new_fields.emplace_back(f);
+          }
+          attr_to_pos[i] = {index, index+1};
+          attr_to_tuple_pos[i] = new_fields.size();
+        }
+        break;
+        case MIN_F:{
+          if(selects.attributes[i].relation_name == nullptr){
+            string avg_attr = selects.attributes[i].attribute_name;
+            avg_attr = "MIN(" + avg_attr + ")";
+            TupleField f = TupleField(tuple_set.get_schema().field(index).type(),selects.relations[0],avg_attr.c_str());
+            new_fields.emplace_back(f);
+          }else{
+            string avg_relat = selects.attributes[i].relation_name;
+            avg_relat = "MIN(" + avg_relat;
+            string avg_attr = selects.attributes[i].attribute_name;
+            avg_attr = avg_attr + ")";
+            TupleField f = TupleField(tuple_set.get_schema().field(index).type(),selects.attributes[i].relation_name,avg_attr.c_str());
+            new_fields.emplace_back(f);
+          }
+          attr_to_pos[i] = {index, index+1};
+          attr_to_tuple_pos[i] = new_fields.size();
+        }
+        break;
+        case COUNT_F:{
+          if(selects.attributes[i].relation_name == nullptr){
+            string avg_attr = selects.attributes[i].attribute_name;
+            avg_attr = "COUNT(" + avg_attr + ")";
+            TupleField f = TupleField(INTS,selects.relations[0],avg_attr.c_str());
+            new_fields.emplace_back(f);
+          }else{
+            string avg_relat = selects.attributes[i].relation_name;
+            avg_relat = "COUNT(" + avg_relat;
+            string avg_attr = selects.attributes[i].attribute_name;
+            avg_attr = avg_attr + ")";
+            TupleField f = TupleField(INTS,selects.attributes[i].relation_name,avg_attr.c_str());
+            new_fields.emplace_back(f);
+          }
+          attr_to_pos[i] = {index, index+1};   
+          attr_to_tuple_pos[i] = new_fields.size();       
+        }
+        break;
+        case COUNT_STAR_F:{
+          if(selects.attributes[i].relation_name == nullptr){
+            string avg_attr = "COUNT(*)";
+            TupleField f = TupleField(INTS,selects.relations[0],avg_attr.c_str());
+            new_fields.emplace_back(f);
+          }else{
+            string avg_relat = selects.attributes[i].relation_name;
+            avg_relat = "COUNT(" + avg_relat;
+            string avg_attr = "*)";
+            TupleField f = TupleField(INTS,selects.attributes[i].relation_name,avg_attr.c_str());
+            new_fields.emplace_back(f);
+          }
+          attr_to_pos[i] = {new_fields.size()-1, new_fields.size()};   
+          attr_to_tuple_pos[i] = new_fields.size();
+        }
+        break;
+        case COUNT_NUM_F:{
+
+          string avg_attr = "COUNT(1)";
+          TupleField f = TupleField(INTS,selects.relations[0],avg_attr.c_str());
+          new_fields.emplace_back(f);
+
+          attr_to_pos[i] = {new_fields.size()-1, new_fields.size()};  
+          attr_to_tuple_pos[i] = new_fields.size();
+        }
+        break;
+        default:
+          return RC::GENERIC_ERROR;
+      }
+    }
+  }
+
+  vector<Tuple> new_tuples;
+  // 新tuple的记录
+  unordered_map<string, int> group_to_tuple_pos_map;
+  // 哈希表对应分组的每个组和组对应tuple行
+  unordered_map<string, int> group_to_count;
+
+  for(const auto &tuple : tuple_set.tuples()){
+    string key;
+
+    for(int i = 0 ; i < selects.group_by_num; ++i)
+      key += tuple.get(group_by_pos[i]).return_char_val();
+
+
+    if(group_to_tuple_pos_map.count(key) == 0){
+      // 没有这个组，添加新的tuple记录到新的虚表中
+      group_to_tuple_pos_map[key] = new_tuples.size();
+      group_to_count[key] = 1;
+      Tuple new_t;
+
+      for(int i = selects.attr_num - 1; i > -1; --i){
+        if(selects.aggre_type[i] == NOTAGG){
+          for(int j = attr_to_pos[i].first; j < attr_to_pos[i].second; ++j)
+            new_t.add(tuple.get_pointer(j));
+
+        }else{
+          switch (selects.aggre_type[i])
+          {
+          case AVG_F:
+          case MAX_F:
+          case MIN_F:
+            {
+              new_t.add(tuple.get_pointer(attr_to_pos[i].first));
+            }
+            break;
+          case COUNT_F:
+          case COUNT_STAR_F:
+          case COUNT_NUM_F:
+            {
+              new_t.add(1);
+            }
+            break;
+          default:
+            break;
+          }
+        }
+      }
+
+      new_tuples.emplace_back(new_t);
+    }else{
+      // 有这个group了
+      ++group_to_count[key];
+      for(int i = selects.attr_num - 1; i > -1; --i){
+        if(selects.aggre_type[i] != NOTAGG){
+          int index = group_to_tuple_pos_map[key];
+          switch (selects.aggre_type[i]){
+          case AVG_F:
+            {
+              int total = group_to_count[key]; 
+              float val = new_tuples[index].get(attr_to_tuple_pos[i]-1).return_val();
+              val *= (total - 1);
+              val += tuple.get(attr_to_pos[i].first).return_val();
+              val /= total;
+              new_tuples[index].set_tupleVal(val, attr_to_tuple_pos[i]-1);
+            }
+            break;
+          case MAX_F:
+            {
+              if(new_tuples[index].get(attr_to_tuple_pos[i]-1).compare(tuple.get(attr_to_pos[i].first)) < 0)
+                new_tuples[index].set_tupleVal(tuple.get_pointer(attr_to_pos[i].first), attr_to_tuple_pos[i]-1);
+            }
+            break;
+          case MIN_F:
+            {
+              if(new_tuples[index].get(attr_to_tuple_pos[i]-1).compare(tuple.get(attr_to_pos[i].first)) > 0)
+                new_tuples[index].set_tupleVal(tuple.get_pointer(attr_to_pos[i].first), attr_to_tuple_pos[i]-1);
+            }
+            break;
+          case COUNT_F:
+          case COUNT_STAR_F:
+          case COUNT_NUM_F:
+            {
+              new_tuples[index].set_tupleVal(group_to_count[key], attr_to_tuple_pos[i]-1);
+            }
+            break;
+          default:
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  tuple_set.set_schema_tuplefields(new_fields);
+  tuple_set.set_vec_tuple(new_tuples);
+
+  return RC::SUCCESS;
 }
 
 RC sort_tuple_sets(const Selects &selects, TupleSet &tuple_set, vector<int> &pos_to_sortfunc){
@@ -617,6 +957,16 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
   if(!flag_exist_attr){
     // 如果有在from后涉及到的表但在选择属性中并未出现这张表的字段，为了做笛卡尔积也需要列出这张表所有字段
     TupleSchema::from_table(table, schema);
+  }
+
+  // group by列表中 出现的属性字段也需要选择出来
+  for(size_t i = 0; i < selects.group_by_num; ++i){
+    if(match_table(selects,selects.group_bys[i].relation_name ,table_name)){
+      RC rc = schema_add_field(table, selects.group_bys[i].attribute_name, schema);
+      if (rc != RC::SUCCESS) {
+        return rc;
+      }
+    }
   }
 
   // 排序列表中 出现的属性字段也需要选择出来

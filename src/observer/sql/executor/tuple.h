@@ -60,6 +60,9 @@ public:
   }
 
   void join_tuples(const Tuple &tuple_oth);
+  void set_tupleVal(float val, int index);
+  void set_tupleVal(int val, int index);
+  void set_tupleVal(const shared_ptr<TupleValue> &val, int index);
 
 private:
   std::vector<std::shared_ptr<TupleValue>>  values_;
@@ -165,6 +168,7 @@ public:
 
   void print_for_join(const Selects &selects, std::ostream &os, unordered_map<string, pair<int,int>> &table_to_valuepos, const vector<int> &pos_to_sortfunc) const;
 
+  void print_for_group(const Selects &selects, std::ostream &os,const vector<int> &pos_to_sortfunc);
 private:
   std::vector<Tuple> tuples_;
   TupleSchema schema_;
