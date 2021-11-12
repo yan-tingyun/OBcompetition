@@ -69,7 +69,9 @@ public:
   }
 
   void to_string(std::ostream &os) const override {
-    os << value_;
+    int v_for_out = value_ * 100;
+    float v = v_for_out / 100.0;
+    os << v;
   }
 
   int compare(const TupleValue &other) const override {

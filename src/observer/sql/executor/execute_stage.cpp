@@ -596,7 +596,7 @@ RC group_by_func(const Selects &selects, TupleSet &tuple_set){
             avg_relat = "AVG(" + avg_relat;
             string avg_attr = selects.attributes[i].attribute_name;
             avg_attr = avg_attr + ")";
-            TupleField f = TupleField(FLOATS,selects.attributes[i].relation_name,avg_attr.c_str());
+            TupleField f = TupleField(FLOATS,avg_relat.c_str(),avg_attr.c_str());
             new_fields.emplace_back(f);
           }
           attr_to_pos[i] = {index, index+1};
@@ -614,7 +614,7 @@ RC group_by_func(const Selects &selects, TupleSet &tuple_set){
             avg_relat = "MAX(" + avg_relat;
             string avg_attr = selects.attributes[i].attribute_name;
             avg_attr = avg_attr + ")";
-            TupleField f = TupleField(tuple_set.get_schema().field(index).type(),selects.attributes[i].relation_name,avg_attr.c_str());
+            TupleField f = TupleField(tuple_set.get_schema().field(index).type(),avg_relat.c_str(),avg_attr.c_str());
             new_fields.emplace_back(f);
           }
           attr_to_pos[i] = {index, index+1};
@@ -632,7 +632,7 @@ RC group_by_func(const Selects &selects, TupleSet &tuple_set){
             avg_relat = "MIN(" + avg_relat;
             string avg_attr = selects.attributes[i].attribute_name;
             avg_attr = avg_attr + ")";
-            TupleField f = TupleField(tuple_set.get_schema().field(index).type(),selects.attributes[i].relation_name,avg_attr.c_str());
+            TupleField f = TupleField(tuple_set.get_schema().field(index).type(),avg_relat.c_str(),avg_attr.c_str());
             new_fields.emplace_back(f);
           }
           attr_to_pos[i] = {index, index+1};
@@ -650,7 +650,7 @@ RC group_by_func(const Selects &selects, TupleSet &tuple_set){
             avg_relat = "COUNT(" + avg_relat;
             string avg_attr = selects.attributes[i].attribute_name;
             avg_attr = avg_attr + ")";
-            TupleField f = TupleField(INTS,selects.attributes[i].relation_name,avg_attr.c_str());
+            TupleField f = TupleField(INTS,avg_relat.c_str(),avg_attr.c_str());
             new_fields.emplace_back(f);
           }
           attr_to_pos[i] = {index, index+1};   
@@ -666,7 +666,7 @@ RC group_by_func(const Selects &selects, TupleSet &tuple_set){
             string avg_relat = selects.attributes[i].relation_name;
             avg_relat = "COUNT(" + avg_relat;
             string avg_attr = "*)";
-            TupleField f = TupleField(INTS,selects.attributes[i].relation_name,avg_attr.c_str());
+            TupleField f = TupleField(INTS,avg_relat.c_str(),avg_attr.c_str());
             new_fields.emplace_back(f);
           }
           attr_to_pos[i] = {new_fields.size()-1, new_fields.size()};   
