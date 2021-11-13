@@ -36,7 +36,7 @@ RC BplusTreeHandler::sync() {
   return disk_buffer_pool_->flush_all_pages(file_id_);
 }
 
-RC BplusTreeHandler::create(const char *file_name, AttrType attr_type, int attr_length)
+RC BplusTreeHandler::create(const char *file_name, AttrType attr_type, int attr_length, int is_unique)
 {
   BPPageHandle page_handle;
   IndexNode *root;
@@ -78,6 +78,7 @@ RC BplusTreeHandler::create(const char *file_name, AttrType attr_type, int attr_
   file_header->node_num = 1;
   file_header->order=((int)BP_PAGE_DATA_SIZE-sizeof(IndexFileHeader)-sizeof(IndexNode))/(attr_length+2*sizeof(RID));
   file_header->root_page = page_num;
+  file_header->is_unique = is_unique;
 
   root = get_index_node(pdata);
   root->is_leaf = 1;
@@ -215,6 +216,16 @@ int CmpKey(AttrType attr_type, int attr_length, const char *pdata, const char *p
   return CmpRid(rid1, rid2);
 }
 
+int CmpKey_Unique(AttrType attr_type, int attr_length, const char *pdata, const char *pkey, int is_unique)
+{
+  int result = CompareKey(pdata, pkey, attr_type, attr_length);
+  if((is_unique == 1 && result == 0) || 0 != result)
+    return result;
+  RID *rid1 = (RID *) (pdata + attr_length);
+  RID *rid2 = (RID *) (pkey + attr_length);
+  return CmpRid(rid1, rid2);
+}
+
 RC BplusTreeHandler::find_leaf(const char *pkey,PageNum *leaf_page) {
   RC rc;
   BPPageHandle page_handle;
@@ -282,7 +293,7 @@ RC BplusTreeHandler::insert_into_leaf(PageNum leaf_page, const char *pkey, const
   node = get_index_node(pdata);
 
   for(insert_pos = 0; insert_pos < node->key_num; insert_pos++){
-    tmp = CmpKey(file_header_.attr_type, file_header_.attr_length, pkey, node->keys + insert_pos * file_header_.key_length);
+    tmp = CmpKey_Unique(file_header_.attr_type, file_header_.attr_length, pkey, node->keys + insert_pos * file_header_.key_length, file_header_.is_unique);
     if (tmp == 0) {
       return RC::RECORD_DUPLICATE_KEY;
     }

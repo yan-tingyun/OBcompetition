@@ -597,7 +597,7 @@ static RC insert_index_record_reader_adapter(Record *record, void *context) {
   return inserter.insert_index(record);
 }
 
-RC Table::create_index(Trx *trx, const char *index_name, const char *attribute_name) {
+RC Table::create_index(Trx *trx, const char *index_name, const char *attribute_name, const int is_unique) {
   if (index_name == nullptr || common::is_blank(index_name) ||
       attribute_name == nullptr || common::is_blank(attribute_name)) {
     return RC::INVALID_ARGUMENT;
@@ -613,7 +613,7 @@ RC Table::create_index(Trx *trx, const char *index_name, const char *attribute_n
   }
 
   IndexMeta new_index_meta;
-  RC rc = new_index_meta.init(index_name, *field_meta);
+  RC rc = new_index_meta.init(index_name, *field_meta, is_unique);
   if (rc != RC::SUCCESS) {
     return rc;
   }
@@ -634,6 +634,12 @@ RC Table::create_index(Trx *trx, const char *index_name, const char *attribute_n
   if (rc != RC::SUCCESS) {
     // rollback
     delete index;
+
+    // delete index file
+    if(remove(index_file.c_str()) != 0){
+      LOG_ERROR("delete index file failed");
+      return RC::IOERR_DELETE;
+    }
     LOG_ERROR("Failed to insert index to all records. table=%s, rc=%d:%s", name(), rc, strrc(rc));
     return rc;
   }

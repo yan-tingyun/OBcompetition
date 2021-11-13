@@ -87,6 +87,7 @@ QUOTE            [\'\"]
 [Aa][Ss][Cc]							RETURN_TOKEN(ASC); // DESC have existed in top 
 
 [Gg][Rr][Oo][Uu][Pp]					RETURN_TOKEN(GROUP);
+[Uu][Nn][Ii][Qq][Uu][Ee]				RETURN_TOKEN(UNIQUE);
 
 
 {ID}							                       yylval->string=strdup(yytext); RETURN_TOKEN(ID);
