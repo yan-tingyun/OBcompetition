@@ -364,7 +364,7 @@ RC Table::make_record(int value_num, const Value *values, char * &record_out) {
     const Value &value = values[i];
 
     // 如果是日期类型，能运行到这里说明通过了合法性校验，则将字符串的值转为整数保存
-    if(field->type() == 4 && value.data != nullptr){
+    if(field->type() == 4 && *(int*)value.data != 16777215){
       char *p = new char[16];
       memcpy(p, value.data, 16);
       string str = p;
