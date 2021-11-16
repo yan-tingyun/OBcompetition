@@ -480,6 +480,11 @@ bool DefaultConditionFilter::filter_for_join(const Tuple &tuple){
   left_value = tuple.get_pointer(left_.attr_offset)->return_char_val();
   right_value = tuple.get_pointer(right_.attr_offset)->return_char_val();
 
+  if((atoi(left_value.c_str()) == 16777215 || atoi(right_value.c_str()) == 16777215) && comp_op_ < IS_NULL){
+    return false;
+  }
+
+
 
   int cmp_result = 0;
   switch (attr_type_) {
