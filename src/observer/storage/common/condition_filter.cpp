@@ -33,11 +33,13 @@ DefaultConditionFilter::DefaultConditionFilter()
   left_.attr_length = 0;
   left_.attr_offset = 0;
   left_.value = nullptr;
+  left_.is_null = 0;
 
   right_.is_attr = false;
   right_.attr_length = 0;
   right_.attr_offset = 0;
   right_.value = nullptr;
+  right_.is_null  =0;
 }
 DefaultConditionFilter::~DefaultConditionFilter()
 {}
@@ -67,6 +69,8 @@ RC DefaultConditionFilter::init(Table &table, const Condition &condition)
   const TableMeta &table_meta = table.table_meta();
   ConDesc left;
   ConDesc right;
+  left.is_null = 0;
+  right.is_null = 0;
 
   AttrType type_left = UNDEFINED;
   AttrType type_right = UNDEFINED;
@@ -80,6 +84,7 @@ RC DefaultConditionFilter::init(Table &table, const Condition &condition)
     }
     left.attr_length = field_left->len();
     left.attr_offset = field_left->offset();
+    left.is_null = 0;
 
     left.value = nullptr;
 
@@ -88,6 +93,10 @@ RC DefaultConditionFilter::init(Table &table, const Condition &condition)
     left.is_attr = false;
     left.value = condition.left_value.data;  // 校验type 或者转换类型
     type_left = condition.left_value.type;
+
+    if(type_left == NULLS){
+      left.is_null = 1;
+    }
 
     left.attr_length = 0;
     left.attr_offset = 0;
@@ -104,11 +113,16 @@ RC DefaultConditionFilter::init(Table &table, const Condition &condition)
     right.attr_offset = field_right->offset();
     type_right = field_right->type();
 
+    right.is_null = 0;
+
     right.value = nullptr;
   } else {
     right.is_attr = false;
     right.value = condition.right_value.data;
     type_right = condition.right_value.type;
+
+    if(type_right == NULLS)
+      right.is_null = 1;
 
     right.attr_length = 0;
     right.attr_offset = 0;
@@ -175,7 +189,12 @@ RC DefaultConditionFilter::init(Table &table, const Condition &condition)
     }
   }
 
-
+  if(type_left == NULLS){
+    type_left = type_right;
+  }
+  if(type_right == NULLS){
+    type_right = type_left;
+  }
 
   if (type_left != type_right) {
     return RC::SCHEMA_FIELD_TYPE_MISMATCH;
@@ -197,6 +216,9 @@ RC DefaultConditionFilter::init(const Condition &condition,const TupleSet &tuple
   ConDesc right;
   left.is_attr = true;
   right.is_attr = true;
+
+  left.is_null = 0;
+  right.is_null = 0;
 
   AttrType type_left = UNDEFINED;
   AttrType type_right = UNDEFINED;
@@ -284,8 +306,6 @@ RC DefaultConditionFilter::init(const Condition &condition,const TupleSet &tuple
 }
 
 
-
-
 RC DefaultConditionFilter::is_date(void *v){
   char *p = new char[16];
   memcpy(p, v, 16);
@@ -347,6 +367,16 @@ int DefaultConditionFilter::calc_sec1970(int year, int month, int day){
 
 bool DefaultConditionFilter::filter(const Record &rec) const
 {
+  // null 和任何值比较都是false，只有is null 和not null 两种判断有返回值
+  if((left_.is_null == 1 || right_.is_null == 1) && comp_op_ < IS_NULL)
+    return false;
+
+  if(left_.is_null == 1 && right_.is_null == 1 && comp_op_ == IS_NULL)
+    return true;
+
+  if(left_.is_null == 1 && right_.is_null == 1 && comp_op_ == IS_NOT_NULL)
+    return false;
+
   char *left_value = nullptr;
   char *right_value = nullptr;
 
@@ -362,6 +392,33 @@ bool DefaultConditionFilter::filter(const Record &rec) const
     right_value = (char *)right_.value;
   }
 
+
+  if(left_.is_null == 1){
+    if(comp_op_ == IS_NULL){
+      if(*right_value == '\0')
+        return true;
+      else
+        return false;
+    }else{
+      if(*right_value == '\0')
+        return false;
+      else
+        return true;
+    }
+  }
+  if(right_.is_null == 1){
+    if(comp_op_ == IS_NULL){
+      if(*left_value == '\0')
+        return true;
+      else
+        return false;
+    }else{
+      if(*left_value == '\0')
+        return false;
+      else
+        return true;
+    }
+  }
 
   int cmp_result = 0;
   switch (attr_type_) {

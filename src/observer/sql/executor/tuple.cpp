@@ -49,16 +49,16 @@ void Tuple::add(TupleValue *value) {
 void Tuple::add(const std::shared_ptr<TupleValue> &other) {
   values_.emplace_back(other);
 }
-void Tuple::add(int value) {
-  add(new IntValue(value));
+void Tuple::add(int value, int is_null) {
+  add(new IntValue(value,is_null));
 }
 
-void Tuple::add(float value) {
-  add(new FloatValue(value));
+void Tuple::add(float value, int is_null) {
+  add(new FloatValue(value,is_null));
 }
 
-void Tuple::add(const char *s, int len) {
-  add(new StringValue(s, len));
+void Tuple::add(const char *s, int len, int is_null) {
+  add(new StringValue(s, len,is_null));
 }
 
 void Tuple::join_tuples(const Tuple &tuple_oth){
@@ -66,11 +66,11 @@ void Tuple::join_tuples(const Tuple &tuple_oth){
 }
 
 void Tuple::set_tupleVal(float val, int index){
-  values_[index] = shared_ptr<TupleValue>(new FloatValue(val));
+  values_[index] = shared_ptr<TupleValue>(new FloatValue(val,0));
 }
 
 void Tuple::set_tupleVal(int val, int index){
-  values_[index] = shared_ptr<TupleValue>(new IntValue(val));
+  values_[index] = shared_ptr<TupleValue>(new IntValue(val,0));
 }
 
 void Tuple::set_tupleVal(const shared_ptr<TupleValue> &val, int index){
@@ -91,16 +91,16 @@ void TupleSchema::from_table(const Table *table, TupleSchema &schema) {
   for (int i = 0; i < field_num; i++) {
     const FieldMeta *field_meta = table_meta.field(i);
     if (field_meta->visible()) {
-      schema.add(field_meta->type(), table_name, field_meta->name());
+      schema.add(field_meta->type(), table_name, field_meta->name(), field_meta->nullable());
     }
   }
 }
 
-void TupleSchema::add(AttrType type, const char *table_name, const char *field_name) {
-  fields_.emplace_back(type, table_name, field_name);
+void TupleSchema::add(AttrType type, const char *table_name, const char *field_name, int is_null) {
+  fields_.emplace_back(type, table_name, field_name, is_null);
 }
 
-void TupleSchema::add_if_not_exists(AttrType type, const char *table_name, const char *field_name) {
+void TupleSchema::add_if_not_exists(AttrType type, const char *table_name, const char *field_name, int is_null) {
   for (const auto &field: fields_) {
     if (0 == strcmp(field.table_name(), table_name) &&
         0 == strcmp(field.field_name(), field_name)) {
@@ -108,7 +108,7 @@ void TupleSchema::add_if_not_exists(AttrType type, const char *table_name, const
     }
   }
 
-  add(type, table_name, field_name);
+  add(type, table_name, field_name, is_null);
 }
 
 void TupleSchema::append(const TupleSchema &other) {
@@ -347,15 +347,20 @@ void TupleSet::print(const Selects &select,std::ostream &os, const vector<int> &
             os << "NULL | ";
             continue;
           }
-          // int cnt = 0;
-          // for (const Tuple &item : tuples_) {
-          //   // 需要增加对null字段的判断
-          //   // count(column) 需要care null字段判断
-          //   ++cnt;               
-          // }
-          int cnt = tuples_.size();
-          os << to_string(cnt);
-          os << " | ";
+
+          if(!schema_.field(iter->first).is_null()){
+
+            int cnt = tuples_.size();
+            os << to_string(cnt);
+            os << " | ";
+          }else{
+            int cnt = 0;
+            for (const Tuple &item : tuples_) {
+              if(!item.values()[iter->first]->is_null())
+                ++cnt;                  
+            }
+            os << to_string(cnt) << " | ";
+          }
         } 
         break;
         case COUNT_STAR_F:
@@ -378,9 +383,19 @@ void TupleSet::print(const Selects &select,std::ostream &os, const vector<int> &
             os << "NULL | ";
             continue;
           }
-          shared_ptr<TupleValue> max_val = tuples_[0].values()[iter->first];
+          int index = 0;
+          while(index < tuples_.size() && !tuples_[index].values()[iter->first]->is_null())
+            ++index;
+          
+          if(index == tuples_.size()){
+            os << "NULL | ";
+            continue;
+          }
+
+          shared_ptr<TupleValue> max_val = tuples_[index].values()[iter->first];
           for (const Tuple &item : tuples_) {
-            if(item.values()[iter->first]->compare(*max_val) > 0)
+            if(!item.values()[iter->first]->is_null()
+                && item.values()[iter->first]->compare(*max_val) > 0)
               max_val = item.values()[iter->first];                   
           }
           (*max_val).to_string(os);
@@ -392,9 +407,20 @@ void TupleSet::print(const Selects &select,std::ostream &os, const vector<int> &
             os << "NULL | ";
             continue;
           }
-          shared_ptr<TupleValue> min_val = tuples_[0].values()[iter->first];
+
+          int index = 0;
+          while(index < tuples_.size() && !tuples_[index].values()[iter->first]->is_null())
+            ++index;
+          
+          if(index == tuples_.size()){
+            os << "NULL | ";
+            continue;
+          }
+
+          shared_ptr<TupleValue> min_val = tuples_[index].values()[iter->first];
           for (const Tuple &item : tuples_) {
-            if(item.values()[iter->first]->compare(*min_val) < 0)
+            if(!item.values()[iter->first]->is_null()
+                && item.values()[iter->first]->compare(*min_val) < 0)
               min_val = item.values()[iter->first];                   
           }
           (*min_val).to_string(os);
@@ -409,10 +435,16 @@ void TupleSet::print(const Selects &select,std::ostream &os, const vector<int> &
           float avg_val = 0;
           int cnt = 0;
           for (const Tuple &item : tuples_) {
-            // 需要增加对null字段的判断
-            ++cnt;
-            avg_val += item.values()[iter->first]->return_val();                
+            if(!item.values()[iter->first]->is_null()){
+              ++cnt;
+              avg_val += item.values()[iter->first]->return_val(); 
+            }               
           }
+          if(cnt == 0){
+            os << "NULL | ";
+            continue;
+          }
+
           avg_val /= cnt;
           int v_for_out = avg_val * 100;
           avg_val = v_for_out / 100.0;
@@ -435,14 +467,19 @@ void TupleSet::print(const Selects &select,std::ostream &os, const vector<int> &
           os << "NULL" << endl;
           return;
         }
-        // int cnt = 0;
-        // for (const Tuple &item : tuples_) {
-        //   // 需要增加对null字段的判断
-        //   // count(column) 需要care null字段判断
-        //   ++cnt;               
-        // }
-        int cnt = tuples_.size();
-        os << to_string(cnt) << endl;
+        if(!schema_.field(schema_.aggtype_pos.back().first).is_null()){
+
+          int cnt = tuples_.size();
+          os << to_string(cnt);
+          os << " | ";
+        }else{
+          int cnt = 0;
+          for (const Tuple &item : tuples_) {
+            if(!item.values()[schema_.aggtype_pos.back().first]->is_null())
+              ++cnt;                  
+          }
+          os << to_string(cnt) << " | ";
+        }
       } 
       break;
       case COUNT_STAR_F:
@@ -464,9 +501,20 @@ void TupleSet::print(const Selects &select,std::ostream &os, const vector<int> &
           os << "NULL" << endl;
           return;
         }
+
+        int index = 0;
+        while(index < tuples_.size() && !tuples_[index].values()[schema_.aggtype_pos.back().first]->is_null())
+          ++index;
+        
+        if(index == tuples_.size()){
+          os << "NULL" << endl;
+          return;
+        }
+
         shared_ptr<TupleValue> max_val = tuples_[0].values()[schema_.aggtype_pos.back().first];
         for (const Tuple &item : tuples_) {
-          if(item.values()[schema_.aggtype_pos.back().first]->compare(*max_val) > 0)
+          if(!item.values()[schema_.aggtype_pos.back().first]->is_null()
+              && item.values()[schema_.aggtype_pos.back().first]->compare(*max_val) > 0)
             max_val = item.values()[schema_.aggtype_pos.back().first];                   
         }
         (*max_val).to_string(os);
@@ -478,9 +526,20 @@ void TupleSet::print(const Selects &select,std::ostream &os, const vector<int> &
           os << "NULL" << endl;
           return;
         }
+
+        int index = 0;
+        while(index < tuples_.size() && !tuples_[index].values()[schema_.aggtype_pos.back().first]->is_null())
+          ++index;
+        
+        if(index == tuples_.size()){
+          os << "NULL" << endl;
+          return;
+        }
+
         shared_ptr<TupleValue> min_val = tuples_[0].values()[schema_.aggtype_pos.back().first];
         for (const Tuple &item : tuples_) {
-          if(item.values()[schema_.aggtype_pos.back().first]->compare(*min_val) < 0)
+          if(!item.values()[schema_.aggtype_pos.back().first]->is_null()
+            && item.values()[schema_.aggtype_pos.back().first]->compare(*min_val) < 0)
             min_val = item.values()[schema_.aggtype_pos.back().first];                   
         }
         (*min_val).to_string(os);
@@ -495,10 +554,17 @@ void TupleSet::print(const Selects &select,std::ostream &os, const vector<int> &
         float avg_val = 0;
         int cnt = 0;
         for (const Tuple &item : tuples_) {
-          // 需要增加对null字段的判断
-          ++cnt;
-          avg_val += item.values()[schema_.aggtype_pos.back().first]->return_val();                
+          if(!item.values()[schema_.aggtype_pos.back().first]->is_null()){
+            ++cnt;
+            avg_val += item.values()[schema_.aggtype_pos.back().first]->return_val();  
+          }              
         }
+
+        if(cnt == 0){
+          os << "NULL" << endl;
+          return;
+        }
+
         avg_val /= cnt;
         int v_for_out = avg_val * 100;
         avg_val = v_for_out / 100.0;
@@ -521,10 +587,17 @@ void TupleSet::print(const Selects &select,std::ostream &os, const vector<int> &
       const std::vector<std::shared_ptr<TupleValue>> &values = tuples_[pos_to_sortfunc[i]].values();
       for (std::vector<std::shared_ptr<TupleValue>>::const_iterator iter = values.begin(), end = --values.end();
             iter != end; ++iter) {
-        (*iter)->to_string(os);
-        os << " | ";
+        if(!(*iter)->is_null()){
+          (*iter)->to_string(os);
+          os << " | ";
+        }else{
+          os << "NULL | ";
+        }
       }
-      values.back()->to_string(os);
+      if(!values.back()->is_null())
+        values.back()->to_string(os);
+      else
+        os << "NULL";
       os << std::endl;
     }
   }
@@ -541,16 +614,24 @@ void TupleSet::print_for_join(const Selects &selects, ostream &os, unordered_map
     const std::vector<std::shared_ptr<TupleValue>> &values = tuples_[pos_to_sortfunc[i]].values();
     for(int i = 0; i < print_col.size() - 1; ++i){
       for(int j = print_col[i].first; j < print_col[i].second; ++j){
-        values[j]->to_string(os);
+        if(!values[j]->is_null())
+          values[j]->to_string(os);
+        else
+          os<<"NULL";
         os << " | ";
       }
     }
     for(int j = print_col.back().first; j < print_col.back().second-1; ++j){
-      
-      values[j]->to_string(os);
+      if(!values[j]->is_null())
+        values[j]->to_string(os);
+      else
+        os<<"NULL";
       os << " | ";
     }
-    values[print_col.back().second-1]->to_string(os);
+    if(!values[print_col.back().second-1]->is_null())
+      values[print_col.back().second-1]->to_string(os);
+    else
+      os<<"NULL";
     os << endl;
   }
 }
@@ -580,10 +661,16 @@ void TupleSet::print_for_group(const Selects &selects, std::ostream &os,const ve
     const std::vector<std::shared_ptr<TupleValue>> &values = tuples_[pos_to_sortfunc[i]].values();
     for (std::vector<std::shared_ptr<TupleValue>>::const_iterator iter = values.begin(), end = --values.end();
           iter != end; ++iter) {
-      (*iter)->to_string(os);
+      if(!(*iter)->is_null())
+        (*iter)->to_string(os);
+      else
+        os<<"NULL";
       os << " | ";
     }
-    values.back()->to_string(os);
+    if(!values.back()->is_null())
+      values.back()->to_string(os);
+    else
+      os<<"NULL";
     os << std::endl;
   }
 }
@@ -638,23 +725,37 @@ void TupleRecordConverter::add_record(const char *record) {
     switch (field_meta->type()) {
       case INTS: {
         int value = *(int*)(record + field_meta->offset());
-        tuple.add(value);
+        if(*(record + field_meta->offset()) == '\0')
+          tuple.add(value,1);
+        else
+          tuple.add(value,0);
       }
       break;
       case FLOATS: {
         float value = *(float *)(record + field_meta->offset());
-        tuple.add(value);
+        if(*(record + field_meta->offset()) == '\0')
+          tuple.add(value,1);
+        else
+          tuple.add(value,0);
       }
         break;
       case CHARS: {
         const char *s = record + field_meta->offset();  // 现在当做Cstring来处理
-        tuple.add(s, strlen(s));
+        if(*s == '\0')
+          tuple.add(s, strlen(s),1);
+        else
+          tuple.add(s, strlen(s),0);
       }
       break;
       case DATES: {
         // value 为距离1970-01-01年的秒数
         // 需要转换为YYYY-mm-dd的格式，用0填充不足位
         int value = *(int*)(record + field_meta->offset());
+        if(*(record + field_meta->offset()) == '\0'){
+          tuple.add(value,1);
+          break;
+        }
+
         long long sec = 0;
         int days[13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
         int year = 1970;
@@ -687,7 +788,7 @@ void TupleRecordConverter::add_record(const char *record) {
         string timestamp = to_string(year) + "-" + 
                           ((to_string(month)).size() > 1 ? to_string(month) : "0" + to_string(month))
                           + "-" + ((to_string(day)).size() > 1 ? to_string(day) : "0" + to_string(day));
-        tuple.add(timestamp.c_str(), timestamp.size());
+        tuple.add(timestamp.c_str(), timestamp.size(),0);
       }
       break;
       default: {

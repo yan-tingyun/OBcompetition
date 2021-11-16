@@ -589,14 +589,14 @@ RC group_by_func(const Selects &selects, TupleSet &tuple_set){
           if(selects.attributes[i].relation_name == nullptr){
             string avg_attr = selects.attributes[i].attribute_name;
             avg_attr = "AVG(" + avg_attr + ")";
-            TupleField f = TupleField(FLOATS,selects.relations[0],avg_attr.c_str());
+            TupleField f = TupleField(FLOATS,selects.relations[0],avg_attr.c_str(),0);
             new_fields.emplace_back(f);
           }else{
             string avg_relat = selects.attributes[i].relation_name;
             avg_relat = "AVG(" + avg_relat;
             string avg_attr = selects.attributes[i].attribute_name;
             avg_attr = avg_attr + ")";
-            TupleField f = TupleField(FLOATS,avg_relat.c_str(),avg_attr.c_str());
+            TupleField f = TupleField(FLOATS,avg_relat.c_str(),avg_attr.c_str(),0);
             new_fields.emplace_back(f);
           }
           attr_to_pos[i] = {index, index+1};
@@ -607,14 +607,14 @@ RC group_by_func(const Selects &selects, TupleSet &tuple_set){
           if(selects.attributes[i].relation_name == nullptr){
             string avg_attr = selects.attributes[i].attribute_name;
             avg_attr = "MAX(" + avg_attr + ")";
-            TupleField f = TupleField(tuple_set.get_schema().field(index).type(),selects.relations[0],avg_attr.c_str());
+            TupleField f = TupleField(tuple_set.get_schema().field(index).type(),selects.relations[0],avg_attr.c_str(),0);
             new_fields.emplace_back(f);
           }else{
             string avg_relat = selects.attributes[i].relation_name;
             avg_relat = "MAX(" + avg_relat;
             string avg_attr = selects.attributes[i].attribute_name;
             avg_attr = avg_attr + ")";
-            TupleField f = TupleField(tuple_set.get_schema().field(index).type(),avg_relat.c_str(),avg_attr.c_str());
+            TupleField f = TupleField(tuple_set.get_schema().field(index).type(),avg_relat.c_str(),avg_attr.c_str(),0);
             new_fields.emplace_back(f);
           }
           attr_to_pos[i] = {index, index+1};
@@ -625,14 +625,14 @@ RC group_by_func(const Selects &selects, TupleSet &tuple_set){
           if(selects.attributes[i].relation_name == nullptr){
             string avg_attr = selects.attributes[i].attribute_name;
             avg_attr = "MIN(" + avg_attr + ")";
-            TupleField f = TupleField(tuple_set.get_schema().field(index).type(),selects.relations[0],avg_attr.c_str());
+            TupleField f = TupleField(tuple_set.get_schema().field(index).type(),selects.relations[0],avg_attr.c_str(),0);
             new_fields.emplace_back(f);
           }else{
             string avg_relat = selects.attributes[i].relation_name;
             avg_relat = "MIN(" + avg_relat;
             string avg_attr = selects.attributes[i].attribute_name;
             avg_attr = avg_attr + ")";
-            TupleField f = TupleField(tuple_set.get_schema().field(index).type(),avg_relat.c_str(),avg_attr.c_str());
+            TupleField f = TupleField(tuple_set.get_schema().field(index).type(),avg_relat.c_str(),avg_attr.c_str(),0);
             new_fields.emplace_back(f);
           }
           attr_to_pos[i] = {index, index+1};
@@ -643,14 +643,14 @@ RC group_by_func(const Selects &selects, TupleSet &tuple_set){
           if(selects.attributes[i].relation_name == nullptr){
             string avg_attr = selects.attributes[i].attribute_name;
             avg_attr = "COUNT(" + avg_attr + ")";
-            TupleField f = TupleField(INTS,selects.relations[0],avg_attr.c_str());
+            TupleField f = TupleField(INTS,selects.relations[0],avg_attr.c_str(),0);
             new_fields.emplace_back(f);
           }else{
             string avg_relat = selects.attributes[i].relation_name;
             avg_relat = "COUNT(" + avg_relat;
             string avg_attr = selects.attributes[i].attribute_name;
             avg_attr = avg_attr + ")";
-            TupleField f = TupleField(INTS,avg_relat.c_str(),avg_attr.c_str());
+            TupleField f = TupleField(INTS,avg_relat.c_str(),avg_attr.c_str(),0);
             new_fields.emplace_back(f);
           }
           attr_to_pos[i] = {index, index+1};   
@@ -660,13 +660,13 @@ RC group_by_func(const Selects &selects, TupleSet &tuple_set){
         case COUNT_STAR_F:{
           if(selects.attributes[i].relation_name == nullptr){
             string avg_attr = "COUNT(*)";
-            TupleField f = TupleField(INTS,selects.relations[0],avg_attr.c_str());
+            TupleField f = TupleField(INTS,selects.relations[0],avg_attr.c_str(),0);
             new_fields.emplace_back(f);
           }else{
             string avg_relat = selects.attributes[i].relation_name;
             avg_relat = "COUNT(" + avg_relat;
             string avg_attr = "*)";
-            TupleField f = TupleField(INTS,avg_relat.c_str(),avg_attr.c_str());
+            TupleField f = TupleField(INTS,avg_relat.c_str(),avg_attr.c_str(),0);
             new_fields.emplace_back(f);
           }
           attr_to_pos[i] = {new_fields.size()-1, new_fields.size()};   
@@ -676,7 +676,7 @@ RC group_by_func(const Selects &selects, TupleSet &tuple_set){
         case COUNT_NUM_F:{
 
           string avg_attr = "COUNT(1)";
-          TupleField f = TupleField(INTS,selects.relations[0],avg_attr.c_str());
+          TupleField f = TupleField(INTS,selects.relations[0],avg_attr.c_str(),0);
           new_fields.emplace_back(f);
 
           attr_to_pos[i] = {new_fields.size()-1, new_fields.size()};  
@@ -727,7 +727,7 @@ RC group_by_func(const Selects &selects, TupleSet &tuple_set){
           case COUNT_STAR_F:
           case COUNT_NUM_F:
             {
-              new_t.add(1);
+              new_t.add(1,0);
             }
             break;
           default:
@@ -743,6 +743,7 @@ RC group_by_func(const Selects &selects, TupleSet &tuple_set){
       for(int i = selects.attr_num - 1; i > -1; --i){
         if(selects.aggre_type[i] != NOTAGG){
           int index = group_to_tuple_pos_map[key];
+          // 注意：group by实现没考虑字段值为null的情况
           switch (selects.aggre_type[i]){
           case AVG_F:
             {
@@ -868,7 +869,7 @@ static RC schema_add_field(Table *table, const char *field_name, TupleSchema &sc
     return RC::SCHEMA_FIELD_MISSING;
   }
 
-  schema.add_if_not_exists(field_meta->type(), table->name(), field_meta->name());
+  schema.add_if_not_exists(field_meta->type(), table->name(), field_meta->name(), field_meta->nullable());
   return RC::SUCCESS;
 }
 

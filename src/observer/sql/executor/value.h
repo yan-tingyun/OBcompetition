@@ -34,12 +34,14 @@ public:
   virtual float return_val() const = 0;
   // 返回char*类型value
   virtual string return_char_val() const = 0;
+  // 返回值是否为空
+  virtual bool is_null() const = 0;
 private:
 };
 
 class IntValue : public TupleValue {
 public:
-  explicit IntValue(int value) : value_(value) {
+  explicit IntValue(int value, int is_null) : value_(value), is_null_(is_null) {
   }
 
   void to_string(std::ostream &os) const override {
@@ -55,17 +57,22 @@ public:
     return value_;
   }
 
-  virtual string  return_char_val() const override{
+  string  return_char_val() const override{
     return std::to_string(value_);
+  }
+
+  bool is_null() const override{
+    return is_null_;
   }
 
 private:
   int value_;
+  int is_null_;
 };
 
 class FloatValue : public TupleValue {
 public:
-  explicit FloatValue(float value) : value_(value) {
+  explicit FloatValue(float value, int is_null) : value_(value), is_null_(is_null) {
   }
 
   void to_string(std::ostream &os) const override {
@@ -91,18 +98,23 @@ public:
   }
 
 
-  virtual string return_char_val() const override{
+  string return_char_val() const override{
     return std::to_string(value_);
+  }
+
+  bool is_null() const override{
+    return is_null_;
   }
 private:
   float value_;
+  int is_null_;
 };
 
 class StringValue : public TupleValue {
 public:
-  StringValue(const char *value, int len) : value_(value, len){
+  StringValue(const char *value, int len, int is_null) : value_(value, len), is_null_(is_null){
   }
-  explicit StringValue(const char *value) : value_(value) {
+  explicit StringValue(const char *value, int is_null) : value_(value), is_null_(is_null) {
   }
 
   void to_string(std::ostream &os) const override {
@@ -118,11 +130,16 @@ public:
     return atof(value_.c_str());
   }
 
-  virtual string return_char_val() const override{
+  string return_char_val() const override{
     return value_;
+  }
+
+  bool is_null() const override{
+    return is_null_;
   }
 private:
   std::string value_;
+  int is_null_;
 };
 
 

@@ -338,6 +338,17 @@ RC Table::make_record(int value_num, const Value *values, char * &record_out) {
     if(field->type() == 4 && value.type == 1 && is_date(value) == RC::SUCCESS)
       continue;
 
+    // 增加空字段校验，如果插入字段为空则校验字段能否为空
+    if(value.type == 5){
+      if(field->nullable()){
+        // is_null == 1, nullable
+        continue;
+      }else{
+        LOG_ERROR("field can not be null, plz insert a not null value");
+        return RC::SCHEMA_FIELD_VALUE_ILLEGAL;
+      }
+    }
+
     if (field->type() != value.type) {
       LOG_ERROR("Invalid value type. field name=%s, type=%d, but given=%d",
         field->name(), field->type(), value.type);
@@ -353,7 +364,7 @@ RC Table::make_record(int value_num, const Value *values, char * &record_out) {
     const Value &value = values[i];
 
     // 如果是日期类型，能运行到这里说明通过了合法性校验，则将字符串的值转为整数保存
-    if(field->type() == 4){
+    if(field->type() == 4 && value.data != nullptr){
       char *p = new char[16];
       memcpy(p, value.data, 16);
       string str = p;
@@ -766,6 +777,11 @@ RC Table::update_record(Trx *trx, Record *record, const char *attribute_name, co
       int time_sec = calc_sec1970(time_int[0], time_int[1], time_int[2]);
       delete p;
       memcpy(record->data + field->offset(), &time_sec, field->len());
+    }else if(value->type == 5){
+      if(field->nullable()==0){
+        LOG_ERROR("field can not be null, plz update a not null value");
+        return RC::SCHEMA_FIELD_VALUE_ILLEGAL;
+      }
     }else if (field->type() != value->type) {
       LOG_ERROR("Invalid value type. field name=%s, type=%d, but given=%d",
         field->name(), field->type(), value->type);
@@ -945,6 +961,10 @@ IndexScanner *Table::find_index_for_scan(const DefaultConditionFilter &filter) {
               field_cond_desc->attr_offset, name());
     return nullptr;
   }
+
+  // 存在null值不走index
+  if(field_meta->nullable())
+    return nullptr;
 
   const IndexMeta *index_meta = table_meta_.find_index_by_field(field_meta->name());
   if (nullptr == index_meta) {

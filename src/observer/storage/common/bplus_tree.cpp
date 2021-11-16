@@ -164,6 +164,12 @@ int CompareKey(const char *pdata, const char *pkey,AttrType attr_type,int attr_l
   float f1,f2;
   const char *s1,*s2;
   int d1,d2;
+
+  if(*pdata == '\0')
+    return -1;
+  if(*pkey == '\0')
+    return 1;
+
   switch(attr_type){
     case INTS: {
       i1 = *(int *) pdata;

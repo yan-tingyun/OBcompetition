@@ -39,9 +39,9 @@ public:
 
   void add(TupleValue *value);
   void add(const std::shared_ptr<TupleValue> &other);
-  void add(int value);
-  void add(float value);
-  void add(const char *s, int len);
+  void add(int value, int is_null);
+  void add(float value, int is_null);
+  void add(const char *s, int len, int is_null);
 
   const std::vector<std::shared_ptr<TupleValue>> &values() const {
     return values_;
@@ -70,8 +70,8 @@ private:
 
 class TupleField {
 public:
-  TupleField(AttrType type, const char *table_name, const char *field_name) :
-          type_(type), table_name_(table_name), field_name_(field_name){
+  TupleField(AttrType type, const char *table_name, const char *field_name, int is_null) :
+          type_(type), table_name_(table_name), field_name_(field_name), is_null_(is_null){
   }
 
   AttrType  type() const{
@@ -85,11 +85,16 @@ public:
     return field_name_.c_str();
   }
 
+  bool is_null() const {
+    return is_null_;
+  }
+
   std::string to_string() const;
 private:
   AttrType  type_;
   std::string table_name_;
   std::string field_name_;
+  int is_null_;
 };
 
 class TupleSchema {
@@ -97,8 +102,8 @@ public:
   TupleSchema() = default;
   ~TupleSchema() = default;
 
-  void add(AttrType type, const char *table_name, const char *field_name);
-  void add_if_not_exists(AttrType type, const char *table_name, const char *field_name);
+  void add(AttrType type, const char *table_name, const char *field_name, int is_null);
+  void add_if_not_exists(AttrType type, const char *table_name, const char *field_name, int is_null);
   // void merge(const TupleSchema &other);
   void append(const TupleSchema &other);
 
