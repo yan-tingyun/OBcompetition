@@ -384,7 +384,7 @@ void TupleSet::print(const Selects &select,std::ostream &os, const vector<int> &
             continue;
           }
           int index = 0;
-          while(index < tuples_.size() && !tuples_[index].values()[iter->first]->is_null())
+          while(index < tuples_.size() && tuples_[index].values()[iter->first]->is_null())
             ++index;
           
           if(index == tuples_.size()){
@@ -409,7 +409,7 @@ void TupleSet::print(const Selects &select,std::ostream &os, const vector<int> &
           }
 
           int index = 0;
-          while(index < tuples_.size() && !tuples_[index].values()[iter->first]->is_null())
+          while(index < tuples_.size() && tuples_[index].values()[iter->first]->is_null())
             ++index;
           
           if(index == tuples_.size()){
@@ -503,7 +503,7 @@ void TupleSet::print(const Selects &select,std::ostream &os, const vector<int> &
         }
 
         int index = 0;
-        while(index < tuples_.size() && !tuples_[index].values()[schema_.aggtype_pos.back().first]->is_null())
+        while(index < tuples_.size() && tuples_[index].values()[schema_.aggtype_pos.back().first]->is_null())
           ++index;
         
         if(index == tuples_.size()){
@@ -528,7 +528,7 @@ void TupleSet::print(const Selects &select,std::ostream &os, const vector<int> &
         }
 
         int index = 0;
-        while(index < tuples_.size() && !tuples_[index].values()[schema_.aggtype_pos.back().first]->is_null())
+        while(index < tuples_.size() && tuples_[index].values()[schema_.aggtype_pos.back().first]->is_null())
           ++index;
         
         if(index == tuples_.size()){
