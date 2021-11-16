@@ -471,14 +471,14 @@ void TupleSet::print(const Selects &select,std::ostream &os, const vector<int> &
 
           int cnt = tuples_.size();
           os << to_string(cnt);
-          os << " | ";
+          os << endl;
         }else{
           int cnt = 0;
           for (const Tuple &item : tuples_) {
             if(!item.values()[schema_.aggtype_pos.back().first]->is_null())
               ++cnt;                  
           }
-          os << to_string(cnt) << " | ";
+          os << to_string(cnt) << endl;
         }
       } 
       break;
