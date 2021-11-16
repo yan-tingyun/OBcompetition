@@ -165,9 +165,9 @@ int CompareKey(const char *pdata, const char *pkey,AttrType attr_type,int attr_l
   const char *s1,*s2;
   int d1,d2;
 
-  if(*pdata == '\0')
+  if(*(int*)pdata == 16777215)
     return -1;
-  if(*pkey == '\0')
+  if(*(int*)pkey == 16777215)
     return 1;
 
   switch(attr_type){

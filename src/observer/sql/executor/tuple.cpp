@@ -725,7 +725,7 @@ void TupleRecordConverter::add_record(const char *record) {
     switch (field_meta->type()) {
       case INTS: {
         int value = *(int*)(record + field_meta->offset());
-        if(*(record + field_meta->offset()) == '\0')
+        if(*(int*)(record + field_meta->offset()) == 16777215)
           tuple.add(value,1);
         else
           tuple.add(value,0);
@@ -733,7 +733,7 @@ void TupleRecordConverter::add_record(const char *record) {
       break;
       case FLOATS: {
         float value = *(float *)(record + field_meta->offset());
-        if(*(record + field_meta->offset()) == '\0')
+        if(*(int*)(record + field_meta->offset()) == 16777215)
           tuple.add(value,1);
         else
           tuple.add(value,0);
@@ -741,7 +741,7 @@ void TupleRecordConverter::add_record(const char *record) {
         break;
       case CHARS: {
         const char *s = record + field_meta->offset();  // 现在当做Cstring来处理
-        if(*s == '\0')
+        if(*(int*)s == 16777215)
           tuple.add(s, strlen(s),1);
         else
           tuple.add(s, strlen(s),0);
@@ -751,7 +751,7 @@ void TupleRecordConverter::add_record(const char *record) {
         // value 为距离1970-01-01年的秒数
         // 需要转换为YYYY-mm-dd的格式，用0填充不足位
         int value = *(int*)(record + field_meta->offset());
-        if(*(record + field_meta->offset()) == '\0'){
+        if(*(int*)(record + field_meta->offset()) == 16777215){
           tuple.add(value,1);
           break;
         }

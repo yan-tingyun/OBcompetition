@@ -395,12 +395,12 @@ bool DefaultConditionFilter::filter(const Record &rec) const
 
   if(left_.is_null == 1){
     if(comp_op_ == IS_NULL){
-      if(*right_value == '\0')
+      if(*(int*)right_value == 16777215)
         return true;
       else
         return false;
     }else{
-      if(*right_value == '\0')
+      if(*(int*)right_value == 16777215)
         return false;
       else
         return true;
@@ -408,12 +408,12 @@ bool DefaultConditionFilter::filter(const Record &rec) const
   }
   if(right_.is_null == 1){
     if(comp_op_ == IS_NULL){
-      if(*left_value == '\0')
+      if(*(int*)left_value == 16777215)
         return true;
       else
         return false;
     }else{
-      if(*left_value == '\0')
+      if(*(int*)left_value == 16777215)
         return false;
       else
         return true;

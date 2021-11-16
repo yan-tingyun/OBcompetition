@@ -61,8 +61,9 @@ void value_init_datetime(Value *value, int v) {
 }
 void value_init_null(Value *value){
   value->type = NULLS;
-  char null_value = '\0';
-  value->data = &null_value;
+  int null_value = 16777215;
+  value->data = malloc(sizeof(int));
+  memcpy(value->data, &null_value, 4);
 }
 void value_destroy(Value *value) {
   value->type = UNDEFINED;
