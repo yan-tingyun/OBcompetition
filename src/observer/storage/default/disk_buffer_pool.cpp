@@ -200,6 +200,11 @@ RC DiskBufferPool::get_this_page(int file_id, PageNum page_num, BPPageHandle *pa
       page_handle->frame->pin_count++;
       page_handle->frame->acc_time = current_time();
       page_handle->open = true;
+
+      // 需要将链表中元素内容为i的节点移到链表头
+      bp_manager_.lru_list.remove(i);
+      bp_manager_.lru_list.push_front(i);
+
       return RC::SUCCESS;
     }
   }
@@ -459,45 +464,93 @@ RC DiskBufferPool::allocate_block(Frame **buffer)
 {
 
   // There is one Frame which is free.
-  for (int i = 0; i < BP_BUFFER_SIZE; i++) {
-    if (!bp_manager_.allocated[i]) {
-      bp_manager_.allocated[i] = true;
-      *buffer = bp_manager_.frame + i;
-      LOG_DEBUG("Allocate block frame=%p", bp_manager_.frame + i);
-      return RC::SUCCESS;
-    }
+  // for (int i = 0; i < BP_BUFFER_SIZE; i++) {
+  //   if (!bp_manager_.allocated[i]) {
+  //     bp_manager_.allocated[i] = true;
+  //     *buffer = bp_manager_.frame + i;
+  //     LOG_DEBUG("Allocate block frame=%p", bp_manager_.frame + i);
+  //     return RC::SUCCESS;
+  //   }
+  // }
+
+  // 如果缓存池没满，则在lru list size的位置加入此buffer
+  if(bp_manager_.lru_list.size() != BP_BUFFER_SIZE){
+    int index = bp_manager_.lru_list.size();
+    bp_manager_.allocated[index] = true;
+    bp_manager_.lru_list.push_front(index);
+    *buffer = bp_manager_.frame + index;
+    LOG_DEBUG("Allocate block frame=%p", bp_manager_.frame + index);
+    return RC::SUCCESS;
   }
 
-  int min = 0;
-  unsigned long mintime = 0;
+
+  // 如果缓存池满了，原实现是找最小时间，但这样有O n的时间复杂度，改为使用双向链表
+  // 将最新读过的frame放在链表头，最后读过的会移动到链表尾部，移除链表尾部元素即可
+  // 链表尾部元素内容即为frame数组内对应的frame的下标
+
+  // 存在pinned的page，因此需要从链表尾部开始找第一个不pinned的元素
   bool flag = false;
-  for (int i = 0; i < BP_BUFFER_SIZE; i++) {
-    if (bp_manager_.frame[i].pin_count != 0)
+  int index = -1;
+
+  for(auto iter = bp_manager_.lru_list.end(); iter != bp_manager_.lru_list.begin(); --iter){
+    if(bp_manager_.frame[*iter].pin_count != 0)
       continue;
     if (!flag) {
       flag = true;
-      min = i;
-      mintime = bp_manager_.frame[i].acc_time;
-    }
-    if (bp_manager_.frame[i].acc_time < mintime) {
-      min = i;
-      mintime = bp_manager_.frame[i].acc_time;
+      index = *iter;
+      iter = bp_manager_.lru_list.erase(iter);
     }
   }
+
   if (!flag) {
     LOG_ERROR("All pages have been used and pinned.");
     return RC::NOMEM;
   }
 
-  if (bp_manager_.frame[min].dirty) {
-    RC rc = flush_block(&(bp_manager_.frame[min]));
+  if (bp_manager_.frame[index].dirty) {
+    RC rc = flush_block(&(bp_manager_.frame[index]));
     if (rc != RC::SUCCESS) {
-      LOG_ERROR("Failed to flush block of %d for %d.", min, bp_manager_.frame[min].file_desc);
+      LOG_ERROR("Failed to flush block of %d for %d.", index, bp_manager_.frame[index].file_desc);
+      bp_manager_.lru_list.push_back(index);
       return rc;
     }
   }
-  *buffer = bp_manager_.frame + min;
+  bp_manager_.lru_list.push_front(index);
+  LOG_DEBUG("Allocate block frame=%p", bp_manager_.frame + index);
+  *buffer = bp_manager_.frame + index;
   return RC::SUCCESS;
+
+
+  // int min = 0;
+  // unsigned long mintime = 0;
+  // bool flag = false;
+  // for (int i = 0; i < BP_BUFFER_SIZE; i++) {
+  //   if (bp_manager_.frame[i].pin_count != 0)
+  //     continue;
+  //   if (!flag) {
+  //     flag = true;
+  //     min = i;
+  //     mintime = bp_manager_.frame[i].acc_time;
+  //   }
+  //   if (bp_manager_.frame[i].acc_time < mintime) {
+  //     min = i;
+  //     mintime = bp_manager_.frame[i].acc_time;
+  //   }
+  // }
+  // if (!flag) {
+  //   LOG_ERROR("All pages have been used and pinned.");
+  //   return RC::NOMEM;
+  // }
+
+  // if (bp_manager_.frame[min].dirty) {
+  //   RC rc = flush_block(&(bp_manager_.frame[min]));
+  //   if (rc != RC::SUCCESS) {
+  //     LOG_ERROR("Failed to flush block of %d for %d.", min, bp_manager_.frame[min].file_desc);
+  //     return rc;
+  //   }
+  // }
+  // *buffer = bp_manager_.frame + min;
+  // return RC::SUCCESS;
 }
 
 RC DiskBufferPool::dispose_block(Frame *buf)

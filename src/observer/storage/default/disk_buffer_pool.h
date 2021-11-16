@@ -26,6 +26,10 @@ See the Mulan PSL v2 for more details. */
 
 #include "rc.h"
 
+#include <list>
+
+using namespace std;
+
 typedef int PageNum;
 
 //
@@ -94,6 +98,7 @@ public:
     size = 0;
     frame = nullptr;
     allocated = nullptr;
+    lru_list.clear();
   }
 
   Frame *alloc() {
@@ -112,6 +117,7 @@ public:
   int size;
   Frame * frame = nullptr;
   bool *allocated = nullptr;
+  list<int> lru_list;
 };
 
 class DiskBufferPool {
