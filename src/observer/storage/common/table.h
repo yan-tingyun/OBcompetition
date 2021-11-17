@@ -69,6 +69,8 @@ public:
 
   RC sync();
 
+  std::string base_dir();
+
 public:
   RC commit_insert(Trx *trx, const RID &rid);
   RC commit_delete(Trx *trx, const RID &rid);
@@ -94,6 +96,8 @@ private:
 private:
   RC init_record_handler(const char *base_dir);
   RC make_record(int value_num, const Value *values, char * &record_out);
+  RC make_record_for_text(int value_num, const Value *values, char * &record_out);
+
 
   // check date type
   // 如果是日期类型则直接将日期转化为int类型
@@ -108,6 +112,7 @@ private:
   TableMeta               table_meta_;
   DiskBufferPool *        data_buffer_pool_; /// 数据文件关联的buffer pool
   int                     file_id_;
+  int                     text_file_id_; //专门存储text数据的外部页
   RecordFileHandler *     record_handler_;   /// 记录操作
   std::vector<Index *>    indexes_;
 };

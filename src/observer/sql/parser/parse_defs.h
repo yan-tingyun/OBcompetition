@@ -36,7 +36,7 @@ typedef enum {
 } CompOp;
 
 //属性值类型
-typedef enum { UNDEFINED, CHARS, INTS, FLOATS, DATES, NULLS, TEXTS} AttrType;
+typedef enum { UNDEFINED, CHARS, INTS, FLOATS, DATES, TEXTS, NULLS} AttrType;
 
 // 聚合函数类型
 typedef enum { NOTAGG, AVG_F, MAX_F, MIN_F, COUNT_F, COUNT_STAR_F, COUNT_NUM_F} AggreType;

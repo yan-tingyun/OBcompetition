@@ -16,6 +16,8 @@ See the Mulan PSL v2 for more details. */
 #include "storage/common/table.h"
 #include "common/log/log.h"
 
+#include <fstream>
+
 #define is_leap_year(y) (((y) % 4  == 0 && (y) % 100 != 0) || (y) % 400 == 0)
 using namespace std;
 
@@ -745,6 +747,17 @@ void TupleRecordConverter::add_record(const char *record) {
           tuple.add(s, strlen(s),1);
         else
           tuple.add(s, strlen(s),0);
+      }
+      break;
+      case TEXTS: {
+        int text_offset = *(int*)(record + field_meta->offset());
+        string text_data_file = table_->base_dir() + "/" + table_meta.name() + ".text";
+        char *data = new char[4097];
+        ifstream fin(text_data_file, ios::binary);
+        fin.seekg(text_offset,ios::beg);
+        fin.read(data, 4096);
+        fin.close();
+        tuple.add(data, strlen(data),0);
       }
       break;
       case DATES: {

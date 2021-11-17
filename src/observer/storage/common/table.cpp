@@ -15,6 +15,9 @@ See the Mulan PSL v2 for more details. */
 #include <limits.h>
 #include <string.h>
 #include <algorithm>
+#include <stdio.h>
+#include <unistd.h>
+#include <fstream>
 
 #include "storage/common/table.h"
 #include "storage/common/table_meta.h"
@@ -99,6 +102,8 @@ RC Table::create(const char *path, const char *name, const char *base_dir, int a
   table_meta_.serialize(fs);
   fs.close();
 
+
+  // 创建数据文件
   std::string data_file = std::string(base_dir) + "/" + name + TABLE_DATA_SUFFIX;
   data_buffer_pool_ = theGlobalDiskBufferPool();
   rc = data_buffer_pool_->create_file(data_file.c_str());
@@ -107,9 +112,31 @@ RC Table::create(const char *path, const char *name, const char *base_dir, int a
     return rc;
   }
 
+
+
+  // 如果field中有text字段，则创建存储text数据的外部文件,使用bp管理文件略麻烦，为解题起见，单独维护此外部文件
+  bool flag = false;
+  const int normal_field_start_index = table_meta_.sys_field_num();
+  for (int i = normal_field_start_index; i < table_meta_.field_num(); i++) {
+    const FieldMeta *field = table_meta_.field(i);
+    if(field->type() == TEXTS){
+      flag = true;
+      break;
+    }
+  }
+
+  if(flag){
+    std::string text_data_file = std::string(base_dir) + "/" + name + TABLE_TEXT_SUFFIX;
+    ofstream text_file(text_data_file,ios::binary);
+    int cnt = 0;
+    text_file.write((const char*)&cnt,4);
+    text_file.close();
+  }
+
   rc = init_record_handler(base_dir);
 
   base_dir_ = base_dir;
+
   LOG_INFO("Successfully create table %s:%s", base_dir, name);
   return rc;
 }
@@ -141,6 +168,10 @@ RC Table::drop(const char *path, const char *name, const char *base_dir){
     LOG_ERROR("delete data file failed");
     return RC::IOERR_DELETE;
   }
+
+  // 删除text数据文件
+  std::string text_data_file = std::string(base_dir) + "/" + name + TABLE_TEXT_SUFFIX;
+  remove(text_data_file.c_str());
 
   // 删除元数据文件 table_name.table
   if(remove(path) != 0){
@@ -275,41 +306,95 @@ RC Table::insert_record(Trx *trx, int value_num, const Value *values, int record
     return RC::INVALID_ARGUMENT;
   }
   RC rc = RC::SUCCESS;
+
+  // 判断是否有text字段，如果有则使用make record 4 text函数
+  // 在record的text字段记录页面号
+  bool flag = false;
+  const int normal_field_start_index = table_meta_.sys_field_num();
+  for (int i = normal_field_start_index; i < table_meta_.field_num(); i++) {
+    const FieldMeta *field = table_meta_.field(i);
+    if(field->type() == TEXTS){
+      flag = true;
+      break;
+    }
+  }
+
+  if(!flag){
   // 思路：插入多条记录、需要对每条记录是否合法做判断，只要有一条记录不合法则rollback commit， 并且需要一并删除索引
   
-  int start_pos = 0;
+    int start_pos = 0;
 
-  for(int i = 0; i < record_num; ++i){
-    // 对于每条记录来讲，value长度为 [start_pos - record_pos[i]) ,然后更新start_pos为record_pos[i]
-    int single_record_len = record_pos[i] - start_pos;
+    for(int i = 0; i < record_num; ++i){
+      // 对于每条记录来讲，value长度为 [start_pos - record_pos[i]) ,然后更新start_pos为record_pos[i]
+      int single_record_len = record_pos[i] - start_pos;
 
-    if (single_record_len <= 0 || nullptr == values ) {
-      LOG_ERROR("Invalid argument. value num=%d, values=%p", single_record_len, values);
-      return RC::INVALID_ARGUMENT;
+      if (single_record_len <= 0 || nullptr == values ) {
+        LOG_ERROR("Invalid argument. value num=%d, values=%p", single_record_len, values);
+        return RC::INVALID_ARGUMENT;
+      }
+
+      Value record_val[single_record_len];
+      for(int pos = 0; pos < single_record_len; ++pos)
+        record_val[pos] = values[start_pos+pos];
+      
+
+      char *record_data;
+      rc = make_record(single_record_len, record_val, record_data);
+      if (rc != RC::SUCCESS) {
+        LOG_ERROR("Failed to create a record. rc=%d:%s", rc, strrc(rc));
+        return rc;
+      }
+
+      Record record;
+      record.data = record_data;
+      // record.valid = true;
+      rc = insert_record(trx, &record);
+      delete[] record_data;
+
+      if(rc != RC::SUCCESS)
+        return rc;
+
+      start_pos = record_pos[i];
     }
 
-    Value record_val[single_record_len];
-    for(int pos = 0; pos < single_record_len; ++pos)
-      record_val[pos] = values[start_pos+pos];
-    
+  }else{
 
-    char *record_data;
-    rc = make_record(single_record_len, record_val, record_data);
-    if (rc != RC::SUCCESS) {
-      LOG_ERROR("Failed to create a record. rc=%d:%s", rc, strrc(rc));
-      return rc;
+
+    int start_pos = 0;
+
+    for(int i = 0; i < record_num; ++i){
+      // 对于每条记录来讲，value长度为 [start_pos - record_pos[i]) ,然后更新start_pos为record_pos[i]
+      int single_record_len = record_pos[i] - start_pos;
+
+      if (single_record_len <= 0 || nullptr == values ) {
+        LOG_ERROR("Invalid argument. value num=%d, values=%p", single_record_len, values);
+        return RC::INVALID_ARGUMENT;
+      }
+
+      Value record_val[single_record_len];
+      for(int pos = 0; pos < single_record_len; ++pos)
+        record_val[pos] = values[start_pos+pos];
+      
+
+      char *record_data;
+      rc = make_record_for_text(single_record_len, record_val, record_data);
+      if (rc != RC::SUCCESS) {
+        LOG_ERROR("Failed to create a record. rc=%d:%s", rc, strrc(rc));
+        return rc;
+      }
+
+      Record record;
+      record.data = record_data;
+      // record.valid = true;
+      rc = insert_record(trx, &record);
+      delete[] record_data;
+
+      if(rc != RC::SUCCESS)
+        return rc;
+
+      start_pos = record_pos[i];
     }
 
-    Record record;
-    record.data = record_data;
-    // record.valid = true;
-    rc = insert_record(trx, &record);
-    delete[] record_data;
-
-    if(rc != RC::SUCCESS)
-      return rc;
-
-    start_pos = record_pos[i];
   }
 
   return rc;
@@ -322,6 +407,107 @@ const char *Table::name() const {
 const TableMeta &Table::table_meta() const {
   return table_meta_;
 }
+
+string Table::base_dir(){
+  return base_dir_;
+}
+
+RC Table::make_record_for_text(int value_num, const Value *values, char * &record_out){
+  // 检查字段类型是否一致
+  if (value_num + table_meta_.sys_field_num() != table_meta_.field_num()) {
+    return RC::SCHEMA_FIELD_MISSING;
+  }
+
+  std::string text_data_file = std::string(base_dir_) + "/" + table_meta_.name() + TABLE_TEXT_SUFFIX;
+  ifstream fin(text_data_file,ios::binary);
+  int cnt;
+  fin.read((char*)&cnt, 4);
+  fin.close();
+
+  const int normal_field_start_index = table_meta_.sys_field_num();
+  for (int i = 0; i < value_num; i++) {
+    const FieldMeta *field = table_meta_.field(i + normal_field_start_index);
+    const Value &value = values[i];
+
+    // 增加日期字段的校验，若field type为日期字段但数据为char类型，则判断一下是否是日期格式
+    if(field->type() == 4 && value.type == 1 && is_date(value) == RC::SUCCESS)
+      continue;
+
+    // 增加空字段校验，如果插入字段为空则校验字段能否为空
+    if(value.type == 6){
+      if(field->nullable()){
+        // is_null == 1, nullable
+        continue;
+      }else{
+        LOG_ERROR("field can not be null, plz insert a not null value");
+        return RC::SCHEMA_FIELD_VALUE_ILLEGAL;
+      }
+    }
+
+    // text 字段校验
+    if(field->type() == TEXTS && value.type == CHARS)
+      continue;
+
+    if (field->type() != value.type) {
+      LOG_ERROR("Invalid value type. field name=%s, type=%d, but given=%d",
+        field->name(), field->type(), value.type);
+      return RC::SCHEMA_FIELD_TYPE_MISMATCH;
+    }
+  }
+  // 复制所有字段的值
+  int record_size = table_meta_.record_size();
+  char *record = new char [record_size];
+
+  for (int i = 0; i < value_num; i++) {
+    const FieldMeta *field = table_meta_.field(i + normal_field_start_index);
+    const Value &value = values[i];
+
+    // 如果是日期类型，能运行到这里说明通过了合法性校验，则将字符串的值转为整数保存
+    if(field->type() == 4 && *(int*)value.data != 16777215){
+      char *p = new char[16];
+      memcpy(p, value.data, 16);
+      string str = p;
+      int len = str.size();
+      int time_int[3];
+      for(int i = 0, j = 0; i < len; ++i){
+        int start = i;
+        while(i<len && str[i] != '-')
+          ++i;
+        time_int[j] = atoi((str.substr(start,i-start)).c_str()); 
+        ++j; 
+      }
+      int time_sec = calc_sec1970(time_int[0], time_int[1], time_int[2]);
+      delete p;
+      memcpy(record + field->offset(), &time_sec, field->len());
+      continue;
+    }
+
+    // 如果是text类型则在text.data文件中插入text数据，在text中的偏移量记录在数据位置
+    if(field->type() == TEXTS){
+      char text_data[4097];
+      memcpy(text_data, value.data, 4096);
+      int text_offset = 4 + cnt*4096;
+      ofstream fout(text_data_file, ios::binary | ios::in);
+      fout.seekp(text_offset, ios::beg);
+      fout.write(text_data, 4096);
+      fout.close();
+      cnt++;
+      memcpy(record + field->offset(), &text_offset, field->len());
+      continue;
+    }
+
+    memcpy(record + field->offset(), value.data, field->len());
+  }
+
+  ofstream fout(text_data_file, ios::binary | ios::in);
+  fout.seekp(0,ios::beg);
+  fout.write((const char*)&cnt,4);
+  fout.close();
+
+  record_out = record;
+  return RC::SUCCESS;
+}
+
 
 RC Table::make_record(int value_num, const Value *values, char * &record_out) {
   // 检查字段类型是否一致
@@ -339,7 +525,7 @@ RC Table::make_record(int value_num, const Value *values, char * &record_out) {
       continue;
 
     // 增加空字段校验，如果插入字段为空则校验字段能否为空
-    if(value.type == 5){
+    if(value.type == 6){
       if(field->nullable()){
         // is_null == 1, nullable
         continue;
@@ -777,7 +963,7 @@ RC Table::update_record(Trx *trx, Record *record, const char *attribute_name, co
       int time_sec = calc_sec1970(time_int[0], time_int[1], time_int[2]);
       delete p;
       memcpy(record->data + field->offset(), &time_sec, field->len());
-    }else if(value->type == 5){
+    }else if(value->type == 6){
       if(field->nullable()==0){
         LOG_ERROR("field can not be null, plz update a not null value");
         return RC::SCHEMA_FIELD_VALUE_ILLEGAL;
