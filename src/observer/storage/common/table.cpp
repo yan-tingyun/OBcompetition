@@ -968,6 +968,20 @@ RC Table::update_record(Trx *trx, Record *record, const char *attribute_name, co
         LOG_ERROR("field can not be null, plz update a not null value");
         return RC::SCHEMA_FIELD_VALUE_ILLEGAL;
       }
+    }else if(field->type() == TEXTS && value->type == CHARS){
+      // 和date type共用一个标志位
+      flag_date_type = true;
+      std::string text_data_file = base_dir_ + "/" + table_meta_.name() + TABLE_TEXT_SUFFIX;
+      ofstream fout(text_data_file, ios::binary|ios::in);
+      int text_offset = *(int*)(record->data + field->offset());
+      fout.seekp(text_offset, ios::beg);
+
+      char text_data[4097];
+      memcpy(text_data, value->data, 4096);
+      fout.seekp(text_offset, ios::beg);
+      fout.write(text_data, 4096);
+      fout.close();
+
     }else if (field->type() != value->type) {
       LOG_ERROR("Invalid value type. field name=%s, type=%d, but given=%d",
         field->name(), field->type(), value->type);
