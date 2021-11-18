@@ -749,7 +749,7 @@ RC Table::scan_record_by_index(Trx *trx, IndexScanner *scanner, ConditionFilter 
   while (record_count < limit) {
     rc = scanner->next_entry(&rid);
     if (rc != RC::SUCCESS) {
-      if (RC::RECORD_EOF == rc) {
+      if (RC::RECORD_EOF == rc || rc == RC::RECORD_NO_MORE_IDX_IN_MEM) {
         rc = RC::SUCCESS;
         break;
       }
@@ -1068,7 +1068,7 @@ RC Table::delete_record(Trx *trx, Record *record) {
     rc = trx->delete_record(this, record);
   } else {
     rc = delete_entry_of_indexes(record->data, record->rid, false);// 重复代码 refer to commit_delete
-    if (rc != RC::SUCCESS && RC::RECORD_NO_MORE_IDX_IN_MEM) {
+    if (rc != RC::SUCCESS) {
       LOG_ERROR("Failed to delete indexes of record (rid=%d.%d). rc=%d:%s",
                 record->rid.page_num, record->rid.slot_num, rc, strrc(rc));
     } else {
