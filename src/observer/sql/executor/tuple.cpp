@@ -752,7 +752,7 @@ void TupleRecordConverter::add_record(const char *record) {
       case TEXTS: {
         int text_offset = *(int*)(record + field_meta->offset());
         string text_data_file = table_->base_dir() + "/" + table_meta.name() + ".text";
-        char data[4097];
+        char data[4096];
         ifstream fin(text_data_file, ios::binary);
         fin.seekg(text_offset,ios::beg);
         fin.read(data, 4096);
