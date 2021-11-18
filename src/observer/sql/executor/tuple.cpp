@@ -757,13 +757,8 @@ void TupleRecordConverter::add_record(const char *record) {
         fin.seekg(text_offset,ios::beg);
         fin.read(data, 4096);
         fin.close();
-        string str = data;
-        for(int i = 0; i < str.size(); ++i){
-          if(str[i]-'\0' < 32){
-            str = str.substr(0,i) + str.substr(i+1,str.size());
-          }
-        }
-        tuple.add(str.c_str(), str.size(),0);
+        
+        tuple.add(data, strlen(data),0);
       }
       break;
       case DATES: {

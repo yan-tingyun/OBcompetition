@@ -485,6 +485,7 @@ RC Table::make_record_for_text(int value_num, const Value *values, char * &recor
     // 如果是text类型则在text.data文件中插入text数据，在text中的偏移量记录在数据位置
     if(field->type() == TEXTS){
       char text_data[4097];
+      memset(&text_data, 0, 4096);
       memcpy(text_data, value.data, 4096);
       int text_offset = 4 + cnt*4096;
       ofstream fout(text_data_file, ios::binary | ios::in);
@@ -977,6 +978,7 @@ RC Table::update_record(Trx *trx, Record *record, const char *attribute_name, co
       fout.seekp(text_offset, ios::beg);
 
       char text_data[4097];
+      memset(&text_data, 0, 4096);
       memcpy(text_data, value->data, 4096);
       fout.seekp(text_offset, ios::beg);
       fout.write(text_data, 4096);
