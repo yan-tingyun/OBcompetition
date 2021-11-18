@@ -436,7 +436,11 @@ bool DefaultConditionFilter::filter(const Record &rec) const
     case FLOATS: {
       float left = *(float *)left_value;
       float right = *(float *)right_value;
-      cmp_result = (int)(left - right);
+      float com = left-right;
+      if (com < 1e-6 && com > -1e-6) {
+        cmp_result = 0;
+      }else
+        cmp_result = com > 0 ? 1: -1;
     } break;
     case DATES: {
       // 没有考虑大小端问题
