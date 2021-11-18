@@ -757,7 +757,6 @@ void TupleRecordConverter::add_record(const char *record) {
         fin.seekg(text_offset,ios::beg);
         fin.read(data, 4096);
         fin.close();
-        
         tuple.add(data, strlen(data),0);
       }
       break;

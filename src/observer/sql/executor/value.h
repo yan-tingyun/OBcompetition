@@ -113,6 +113,10 @@ private:
 class StringValue : public TupleValue {
 public:
   StringValue(const char *value, int len, int is_null) : value_(value, len), is_null_(is_null){
+    if(value_.size() > 4096)
+      value_ = value_.substr(0,4096);
+    // cout << value_.size() << endl;
+    // cout << value_[value_.size()-1] - '\0' << endl;
   }
   explicit StringValue(const char *value, int is_null) : value_(value), is_null_(is_null) {
   }
