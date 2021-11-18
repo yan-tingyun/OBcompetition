@@ -1068,7 +1068,7 @@ RC Table::delete_record(Trx *trx, Record *record) {
     rc = trx->delete_record(this, record);
   } else {
     rc = delete_entry_of_indexes(record->data, record->rid, false);// 重复代码 refer to commit_delete
-    if (rc != RC::SUCCESS) {
+    if (rc != RC::SUCCESS && RC::RECORD_NO_MORE_IDX_IN_MEM) {
       LOG_ERROR("Failed to delete indexes of record (rid=%d.%d). rc=%d:%s",
                 record->rid.page_num, record->rid.slot_num, rc, strrc(rc));
     } else {
