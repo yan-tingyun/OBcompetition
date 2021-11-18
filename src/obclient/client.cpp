@@ -115,7 +115,9 @@ int set_terminal_noncanonical() {
 
 int main(int argc, char *argv[]) {
   int ret = 0; // set_terminal_noncanonical();
-  if (set_terminal_noncanonical() < 0) {
+  // if (set_terminal_noncanonical() < 0) {
+
+  if (ret < 0) {
     printf("Warning: failed to set terminal non canonical. Long command may be handled incorrect\n");
   }
 
