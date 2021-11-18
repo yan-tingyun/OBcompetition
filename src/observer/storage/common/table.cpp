@@ -486,7 +486,7 @@ RC Table::make_record_for_text(int value_num, const Value *values, char * &recor
     if(field->type() == TEXTS){
       char text_data[4097];
       memset(&text_data, 0, 4096);
-      memcpy(text_data, value.data, 4096);
+      memcpy(text_data, value.data, strlen((char *)value.data));
       int text_offset = 4 + cnt*4096;
       ofstream fout(text_data_file, ios::binary | ios::in);
       fout.seekp(text_offset, ios::beg);
@@ -979,7 +979,7 @@ RC Table::update_record(Trx *trx, Record *record, const char *attribute_name, co
 
       char text_data[4097];
       memset(&text_data, 0, 4096);
-      memcpy(text_data, value->data, 4096);
+      memcpy(text_data, value->data, strlen((char *)value->data));
       fout.seekp(text_offset, ios::beg);
       fout.write(text_data, 4096);
       fout.close();
