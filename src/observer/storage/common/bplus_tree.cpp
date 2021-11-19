@@ -232,6 +232,29 @@ int CmpKey_Unique(AttrType attr_type, int attr_length, const char *pdata, const 
   return CmpRid(rid1, rid2);
 }
 
+int CmpKey_Multi(vector<FieldMeta> &fields,vector<MultiIndexValue> &index_vals,const char *rec, const char *pdata, const char *pkey)
+{
+  // pdata是插入index的值，pkey是已经存在的index
+  // 先和第一列索引比，如果相同则按照每列索引递增顺序排序
+  int result = CompareKey(pdata, pkey, fields[0].type(), fields[0].len());
+  if (0 != result) {
+    return result;
+  }
+  RID *rid1 = (RID *) (pdata + fields[0].len()); //插入的rid
+  RID *rid2 = (RID *) (pkey + fields[0].len());
+  for(int i = 0; i < index_vals.size(); ++i){
+    if(CmpRid(&index_vals[i].rids, rid2) == 0){
+      for(int j = 1; j < fields.size(); ++j){
+        int result = CompareKey(rec+fields[j].offset(), index_vals[i].value+fields[j].offset(), fields[j].type(), fields[j].len());
+        if(result != 0)
+          return result;
+      }
+      break;
+    }
+  }
+  return CmpRid(rid1, rid2);
+}
+
 RC BplusTreeHandler::find_leaf(const char *pkey,PageNum *leaf_page) {
   RC rc;
   BPPageHandle page_handle;
@@ -279,7 +302,7 @@ RC BplusTreeHandler::find_leaf(const char *pkey,PageNum *leaf_page) {
   return SUCCESS;
 }
 
-RC BplusTreeHandler::insert_into_leaf(PageNum leaf_page, const char *pkey, const RID *rid)
+RC BplusTreeHandler::insert_into_leaf(PageNum leaf_page, const char *pkey, const RID *rid, const char *rec)
 {
   int i,insert_pos,tmp;
   BPPageHandle  page_handle;
@@ -299,7 +322,11 @@ RC BplusTreeHandler::insert_into_leaf(PageNum leaf_page, const char *pkey, const
   node = get_index_node(pdata);
 
   for(insert_pos = 0; insert_pos < node->key_num; insert_pos++){
-    tmp = CmpKey_Unique(file_header_.attr_type, file_header_.attr_length, pkey, node->keys + insert_pos * file_header_.key_length, file_header_.is_unique);
+    if(fields_.size() < 2)
+      tmp = CmpKey_Unique(file_header_.attr_type, file_header_.attr_length, pkey, node->keys + insert_pos * file_header_.key_length, file_header_.is_unique);
+    else
+      tmp = CmpKey_Multi(fields_, index_vals_, rec, pkey, node->keys + insert_pos * file_header_.key_length);
+
     if (tmp == 0) {
       return RC::RECORD_DUPLICATE_KEY;
     }
@@ -323,6 +350,13 @@ RC BplusTreeHandler::insert_into_leaf(PageNum leaf_page, const char *pkey, const
   if(rc != SUCCESS){
     return rc;
   }
+  if(fields_.size() > 1){
+    MultiIndexValue val;
+    memcpy(&val.rids, rid, sizeof(RID));
+    memcpy(val.value,rec,sizeof(rec));
+    index_vals_.emplace_back(val);
+  }
+
   return SUCCESS;
 }
 
@@ -362,7 +396,7 @@ RC BplusTreeHandler::print() {
   return rc;
 }
 
-RC BplusTreeHandler::insert_into_leaf_after_split(PageNum leaf_page, const char *pkey, const RID *rid) {
+RC BplusTreeHandler::insert_into_leaf_after_split(PageNum leaf_page, const char *pkey, const RID *rid,const char *rec) {
   RC rc;
   BPPageHandle  page_handle1,page_handle2;
   IndexNode *leaf,*new_node;
@@ -490,6 +524,14 @@ RC BplusTreeHandler::insert_into_leaf_after_split(PageNum leaf_page, const char 
     return rc;
   }
   free(new_key);
+
+  if(fields_.size() > 1){
+    MultiIndexValue val;
+    memcpy(&val.rids, rid, sizeof(RID));
+    memcpy(val.value,rec,sizeof(rec));
+    index_vals_.emplace_back(val);
+  }
+
   return SUCCESS;
 }
 
@@ -831,8 +873,15 @@ RC BplusTreeHandler::insert_entry(const char *pkey, const RID *rid) {
     LOG_ERROR("Failed to alloc memory for key. size=%d", file_header_.key_length);
     return RC::NOMEM;
   }
-  memcpy(key,pkey,file_header_.attr_length);
-  memcpy(key + file_header_.attr_length, rid, sizeof(*rid));
+  if(fields_.size() < 2){
+    memcpy(key,pkey,file_header_.attr_length);
+    memcpy(key + file_header_.attr_length, rid, sizeof(*rid));
+
+  }else{
+    memcpy(key,pkey+fields_[0].offset(),file_header_.attr_length);
+    memcpy(key + file_header_.attr_length, rid, sizeof(*rid));
+  }
+
   rc= find_leaf(key, &leaf_page);
   if(rc!=SUCCESS){
     free(key);
@@ -858,7 +907,7 @@ RC BplusTreeHandler::insert_entry(const char *pkey, const RID *rid) {
       free(key);
       return rc;
     }
-    rc=insert_into_leaf(leaf_page,key,rid);
+    rc=insert_into_leaf(leaf_page,key,rid,pkey);
     if(rc!=SUCCESS){
       free(key);
       return rc;
@@ -875,7 +924,7 @@ RC BplusTreeHandler::insert_entry(const char *pkey, const RID *rid) {
 
     // print();
 
-    rc=insert_into_leaf_after_split(leaf_page,key,rid);
+    rc=insert_into_leaf_after_split(leaf_page,key,rid,pkey);
     free(key);
     return SUCCESS;
   }
@@ -1472,8 +1521,13 @@ RC BplusTreeHandler::delete_entry(const char *data, const RID *rid) {
     LOG_ERROR("Failed to alloc memory for key. size=%d", file_header_.key_length);
     return RC::NOMEM;
   }
-  memcpy(pkey,data,file_header_.attr_length);
-  memcpy(pkey + file_header_.attr_length, rid ,sizeof(*rid));
+  if(fields_.size() < 2){
+    memcpy(pkey,data,file_header_.attr_length);
+    memcpy(pkey + file_header_.attr_length, rid ,sizeof(*rid));
+  }else{
+    memcpy(pkey,data+fields_[0].offset(),file_header_.attr_length);
+    memcpy(pkey + file_header_.attr_length, rid, sizeof(*rid));
+  }
 
   rc=find_leaf(pkey,&leaf_page);
   if(rc!=SUCCESS){
@@ -1486,6 +1540,16 @@ RC BplusTreeHandler::delete_entry(const char *data, const RID *rid) {
     return rc;
   }
   free(pkey);
+
+  if(fields_.size() > 1){
+    for(auto iter = index_vals_.begin(); iter != index_vals_.end(); ++iter){
+      if(CmpRid(&iter->rids,rid) == 0){
+        index_vals_.erase(iter);
+        break;
+      }
+    }
+  }
+
   return SUCCESS;
 }
 

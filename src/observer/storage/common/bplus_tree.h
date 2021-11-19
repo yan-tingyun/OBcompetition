@@ -17,6 +17,7 @@ See the Mulan PSL v2 for more details. */
 #include "record_manager.h"
 #include "storage/default/disk_buffer_pool.h"
 #include "sql/parser/parse_defs.h"
+#include "storage/common/field_meta.h"
 
 struct IndexFileHeader {
   int attr_length;
@@ -49,6 +50,11 @@ struct Tree {
   int attr_length;
   int order;
   TreeNode *root;
+};
+
+struct MultiIndexValue {
+  char *value;
+  RID rids;
 };
 
 class BplusTreeHandler {
@@ -94,10 +100,14 @@ public:
 public:
   RC print();
   RC print_tree();
+
+  std::vector<FieldMeta> fields_;
+  std::vector<MultiIndexValue> index_vals_;
+
 protected:
   RC find_leaf(const char *pkey, PageNum *leaf_page);
-  RC insert_into_leaf(PageNum leaf_page, const char *pkey, const RID *rid);
-  RC insert_into_leaf_after_split(PageNum leaf_page, const char *pkey, const RID *rid);
+  RC insert_into_leaf(PageNum leaf_page, const char *pkey, const RID *rid, const char *rec);
+  RC insert_into_leaf_after_split(PageNum leaf_page, const char *pkey, const RID *rid, const char *rec);
   RC insert_into_parent(PageNum parent_page, PageNum leaf_page, const char *pkey, PageNum right_page);
   RC insert_into_new_root(PageNum leaf_page, const char *pkey, PageNum right_page);
   RC insert_intern_node(PageNum parent_page, PageNum leaf_page, PageNum right_page, const char *pkey);
@@ -119,6 +129,7 @@ private:
   int               file_id_ = -1;
   bool              header_dirty_ = false;
   IndexFileHeader   file_header_;
+
 
 private:
   friend class BplusTreeScanner;

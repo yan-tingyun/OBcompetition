@@ -15,6 +15,8 @@ See the Mulan PSL v2 for more details. */
 #include "storage/common/bplus_tree_index.h"
 #include "common/log/log.h"
 
+using namespace std;
+
 BplusTreeIndex::~BplusTreeIndex() noexcept {
   close();
 }
@@ -30,6 +32,24 @@ RC BplusTreeIndex::create(const char *file_name, const IndexMeta &index_meta, co
   }
 
   rc = index_handler_.create(file_name, field_meta.type(), field_meta.len(), index_meta.is_unique());
+  if (RC::SUCCESS == rc) {
+    inited_ = true;
+  }
+  return rc;
+}
+
+RC BplusTreeIndex::create_multi(const char *file_name, const IndexMeta &index_meta, vector<FieldMeta> &field_meta) {
+  if (inited_) {
+    return RC::RECORD_OPENNED;
+  }
+
+  RC rc = Index::init(index_meta, field_meta[0]);
+  if (rc != RC::SUCCESS) {
+    return rc;
+  }
+
+  rc = index_handler_.create(file_name, field_meta[0].type(), field_meta[0].len(), index_meta.is_unique());
+  index_handler_.fields_ = field_meta;
   if (RC::SUCCESS == rc) {
     inited_ = true;
   }
@@ -61,10 +81,14 @@ RC BplusTreeIndex::close() {
 }
 
 RC BplusTreeIndex::insert_entry(const char *record, const RID *rid) {
+  if(index_handler_.fields_.size() > 1)
+    return index_handler_.insert_entry(record + 4, rid);
   return index_handler_.insert_entry(record + field_meta_.offset(), rid);
 }
 
 RC BplusTreeIndex::delete_entry(const char *record, const RID *rid) {
+  if(index_handler_.fields_.size() > 1)
+    return index_handler_.delete_entry(record + 4, rid);
   return index_handler_.delete_entry(record + field_meta_.offset(), rid);
 }
 
