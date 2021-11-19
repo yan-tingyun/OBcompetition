@@ -881,6 +881,11 @@ RC Table::create_index(Trx *trx, const char *index_name, const char *attribute_n
 }
 
 
+RC Table::create_multi_index(Trx *trx, const char *index_name, const RelAttr *attr_list,int attr_num, const int is_unique){
+  return RC::SUCCESS;
+}
+
+
 
 // Author: yty 21/10/22
 // implement of update record
