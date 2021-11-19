@@ -352,8 +352,9 @@ RC BplusTreeHandler::insert_into_leaf(PageNum leaf_page, const char *pkey, const
   }
   if(fields_.size() > 1){
     MultiIndexValue val;
+    val.value = (char *)malloc(rec_size);
     memcpy(&val.rids, rid, sizeof(RID));
-    memcpy(val.value,rec,sizeof(rec));
+    memcpy(val.value,rec,rec_size);
     index_vals_.emplace_back(val);
   }
 
@@ -527,8 +528,9 @@ RC BplusTreeHandler::insert_into_leaf_after_split(PageNum leaf_page, const char 
 
   if(fields_.size() > 1){
     MultiIndexValue val;
+    val.value = (char *)malloc(rec_size);
     memcpy(&val.rids, rid, sizeof(RID));
-    memcpy(val.value,rec,sizeof(rec));
+    memcpy(val.value,rec,rec_size);
     index_vals_.emplace_back(val);
   }
 

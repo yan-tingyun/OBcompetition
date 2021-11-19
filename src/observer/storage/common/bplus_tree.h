@@ -102,6 +102,7 @@ public:
   RC print_tree();
 
   std::vector<FieldMeta> fields_;
+  int rec_size;
   std::vector<MultiIndexValue> index_vals_;
 
 protected:
