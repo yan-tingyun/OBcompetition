@@ -200,8 +200,8 @@ void DefaultStorageStage::handle_event(StageEvent *event) {
         rc = handler_->create_index(current_trx, current_db, create_index.relation_name, 
                                   create_index.index_name, create_index.attribute_name, create_index.is_unique);
       }else{
-        rc = handler_->create_index(current_trx, current_db, create_index.relation_name, 
-                                  create_index.index_name, create_index.attributes[create_index.attr_num-1].attribute_name, create_index.is_unique);
+        rc = handler_->create_multi_index(current_trx, current_db, create_index.relation_name, 
+                                  create_index.index_name, create_index.attributes, create_index.attr_num, create_index.is_unique);
       }
       snprintf(response, sizeof(response), "%s\n", rc == RC::SUCCESS ? "SUCCESS" : "FAILURE");
     }

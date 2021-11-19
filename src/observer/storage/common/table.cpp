@@ -882,7 +882,15 @@ RC Table::create_index(Trx *trx, const char *index_name, const char *attribute_n
 
 
 RC Table::create_multi_index(Trx *trx, const char *index_name, const RelAttr *attr_list,int attr_num, const int is_unique){
-  return RC::SUCCESS;
+  for(int i = attr_num-1; i >-1; --i){
+    const FieldMeta *field = table_meta_.field(attr_list[i].attribute_name);
+    if(field == nullptr){
+      LOG_ERROR("failed to update, field=%s missing!", attr_list[i].attribute_name);
+      return RC::SCHEMA_FIELD_MISSING;
+    }
+  }
+
+  return create_index(trx,index_name,attr_list[attr_num-1].attribute_name,is_unique);
 }
 
 
@@ -1065,6 +1073,8 @@ RC Table::delete_record(Trx *trx, ConditionFilter *filter, int *deleted_count) {
   if (deleted_count != nullptr) {
     *deleted_count = deleter.deleted_count();
   }
+  if(rc == RC::RECORD_NO_MORE_IDX_IN_MEM)
+    return RC::SUCCESS;
   return rc;
 }
 
