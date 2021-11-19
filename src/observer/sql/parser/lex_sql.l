@@ -96,6 +96,8 @@ QUOTE            [\'\"]
 
 [Tt][Ee][Xx][Tt]						RETURN_TOKEN(TEXT_T);
 
+[Ii][Nn]								RETURN_TOKEN(IN);
+
 
 {ID}							                       yylval->string=strdup(yytext); RETURN_TOKEN(ID);
 "("								                       RETURN_TOKEN(LBRACE);

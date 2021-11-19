@@ -82,13 +82,13 @@ RC BplusTreeIndex::close() {
 
 RC BplusTreeIndex::insert_entry(const char *record, const RID *rid) {
   if(index_handler_.fields_.size() > 1)
-    return index_handler_.insert_entry(record + 4, rid);
+    return index_handler_.insert_entry(record, rid);
   return index_handler_.insert_entry(record + field_meta_.offset(), rid);
 }
 
 RC BplusTreeIndex::delete_entry(const char *record, const RID *rid) {
   if(index_handler_.fields_.size() > 1)
-    return index_handler_.delete_entry(record + 4, rid);
+    return index_handler_.delete_entry(record, rid);
   return index_handler_.delete_entry(record + field_meta_.offset(), rid);
 }
 

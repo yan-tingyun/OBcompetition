@@ -123,6 +123,7 @@ ParserContext *get_context(yyscan_t scanner)
 		NULLABLE
 		IS
 		TEXT_T
+		IN
 
 %union {
   struct _Attr *attr;
