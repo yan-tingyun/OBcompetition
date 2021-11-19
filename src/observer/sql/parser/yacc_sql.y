@@ -239,6 +239,7 @@ create_index:		/*create index 语句的语法解析树*/
 		}
 	| CREATE UNIQUE INDEX ID ON ID LBRACE ID RBRACE SEMICOLON {
 		CONTEXT->ssql->flag = SCF_CREATE_INDEX;//"create_index";
+		CONTEXT->ssql->sstr.create_index.attr_num = 1;
 		create_index_init(&CONTEXT->ssql->sstr.create_index, $4, $6, $8, 1);
 	}
     ;
