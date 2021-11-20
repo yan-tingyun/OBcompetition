@@ -368,7 +368,7 @@ bool filter(const shared_ptr<TupleValue> &left,const shared_ptr<TupleValue> &rig
 RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,TupleSet &tuple_set,std::stringstream &ss){
   // 处理主查询
   SelectExeNode *select_node = new SelectExeNode;
-  const char *table_name = selects.relations[0];
+  const char *table_name = selects.relations[1];
   TupleSchema schema;
   Table * table = DefaultHandler::get_default().find_table(db, table_name);
   if (nullptr == table) {
@@ -451,7 +451,7 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
     if(condition.sub_query != nullptr){
       const Selects sub_select = *condition.sub_query;
       SelectExeNode *sub_select_node = new SelectExeNode;
-      const char *sub_table_name = sub_select.relations[0];
+      const char *sub_table_name = selects.relations[0];
       TupleSchema sub_schema;
 
       Table * sub_table = DefaultHandler::get_default().find_table(db, sub_table_name);
@@ -691,18 +691,6 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   for(int i = 0; i < selects.condition_num; ++i){
     if(selects.conditions[i].sub_query != nullptr){
       // do sub query
-      ss <<"table name" << selects.conditions[i].sub_query->relations[0] << endl;
-      Table * sub_table = DefaultHandler::get_default().find_table(db, selects.conditions[i].sub_query->relations[0]);
-      if (nullptr == sub_table) {
-        ss << "not find " << selects.conditions[i].sub_query->relations[0] << endl;
-        session_event->set_response(ss.str());
-        return RC::SCHEMA_TABLE_NOT_EXIST;
-      }else{
-        ss<<"find"<<endl;
-        session_event->set_response(ss.str());
-      }
-
-
       is_sub_query = true;
       break;
     }

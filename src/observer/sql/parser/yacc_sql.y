@@ -873,6 +873,7 @@ condition:
 sub_query:
 	LBRACE SELECT sub_query_attr FROM ID sub_query_cond RBRACE{
 		selects_append_relation(&CONTEXT->simple_sub_query, $5);
+		selects_append_relation(&CONTEXT->ssql->sstr.selection, $5);
 		selects_append_conditions(&CONTEXT->simple_sub_query, CONTEXT->sub_query_conditions, CONTEXT->sub_query_condition_length);
 		CONTEXT->sub_query_condition_length=0;
 		CONTEXT->value_length = 0;
