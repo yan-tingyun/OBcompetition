@@ -453,7 +453,7 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
       SelectExeNode *sub_select_node = new SelectExeNode;
       const char *sub_table_name = sub_select.relations[0];
       TupleSchema sub_schema;
-      ss << "ok" << endl;
+
       Table * sub_table = DefaultHandler::get_default().find_table(db, sub_table_name);
       if (nullptr == sub_table) {
         LOG_WARN("No such table [%s] in db [%s]", sub_table_name, db);
@@ -461,7 +461,6 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
         delete sub_select_node;
         return RC::SCHEMA_TABLE_NOT_EXIST;
       }
-      ss << "ok" << endl;
 
       const RelAttr &attr = sub_select.attributes[0];
       if (nullptr == attr.relation_name || 0 == strcmp(sub_select.relations[0], attr.relation_name)){
@@ -692,6 +691,17 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   for(int i = 0; i < selects.condition_num; ++i){
     if(selects.conditions[i].sub_query != nullptr){
       // do sub query
+      Table * sub_table = DefaultHandler::get_default().find_table(db, selects.conditions[i].sub_query->relations[0]);
+      if (nullptr == sub_table) {
+        ss << "not find " << selects.conditions[i].sub_query->relations[0] << endl;
+        session_event->set_response(ss.str());
+        return RC::SCHEMA_TABLE_NOT_EXIST;
+      }else{
+        ss<<"find"<<endl;
+        session_event->set_response(ss.str());
+      }
+
+
       is_sub_query = true;
       break;
     }
