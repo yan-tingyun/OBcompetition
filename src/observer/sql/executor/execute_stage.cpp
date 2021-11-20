@@ -555,7 +555,12 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
 
       vector<Tuple> tmp_tuple = tuple_set.tuples();
 
-    
+      if(sub_set.size() == 0){
+        tmp_tuple.clear();
+        delete sub_select_node;
+        tuple_set.set_vec_tuple(tmp_tuple);
+        return RC::SUCCESS;
+      }
 
       // 判断查询类型
       switch(sub_select.aggre_type[0]){
