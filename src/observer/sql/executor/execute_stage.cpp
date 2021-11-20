@@ -453,6 +453,7 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
       SelectExeNode *sub_select_node = new SelectExeNode;
       const char *sub_table_name = sub_select.relations[0];
       TupleSchema sub_schema;
+      ss << "ok" << endl;
       Table * sub_table = DefaultHandler::get_default().find_table(db, sub_table_name);
       if (nullptr == sub_table) {
         LOG_WARN("No such table [%s] in db [%s]", sub_table_name, db);
