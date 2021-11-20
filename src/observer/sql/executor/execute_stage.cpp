@@ -365,7 +365,7 @@ bool filter(const shared_ptr<TupleValue> &left,const shared_ptr<TupleValue> &rig
   return false;
 }
 
-RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,TupleSet &tuple_set){
+RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,TupleSet &tuple_set,std::stringstream &ss){
   // 处理主查询
   SelectExeNode *select_node = new SelectExeNode;
   const char *table_name = selects.relations[0];
@@ -520,6 +520,8 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
         return rc;
       }
 
+      ss << "everything is ok" << endl;
+
       // 校验查询字段是否存在、两边字段是否相同类型
       int postion;
       if(condition.sq_pos == 0){
@@ -532,6 +534,7 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
         }
       }else{
         postion = tuple_set.get_schema().index_of_field(table_name, condition.left_attr.attribute_name);
+        ss << "everything is ok" << endl;
         if(postion < 0){
           delete select_node;
           delete sub_select_node;
@@ -546,7 +549,7 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
         end_trx_if_need(session, trx, false);
         return RC::GENERIC_ERROR;
       }
-
+      ss << "everything is ok" << endl;
       vector<Tuple> tmp_tuple = tuple_set.tuples();
 
       // 判断查询类型
@@ -695,21 +698,18 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
 
   if(is_sub_query){
     TupleSet tuple_set;
-    RC rc = do_sub_query(trx,session,db,selects,tuple_set);
+    RC rc = do_sub_query(trx,session,db,selects,tuple_set,ss);
     if(rc != RC::SUCCESS){
       end_trx_if_need(session, trx, false);
       return rc;
     }
 
     tuple_set.print_single_table(ss);
-    ss << "is sub query" << endl;
     session_event->set_response(ss.str());
     end_trx_if_need(session, trx, true);
     return RC::SUCCESS;
   }
 
-  ss << "is not sub query" << endl;
-  return RC::SUCCESS;
 
 
   // group by list合法性校验 (其实应该先对属性、判断条件的合法性初步校验，可以省去后面的步骤)
