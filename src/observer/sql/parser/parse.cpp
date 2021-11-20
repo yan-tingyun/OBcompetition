@@ -83,12 +83,12 @@ void condition_init(Condition *condition, CompOp comp,
   }
 
   condition->right_is_attr = right_is_attr;
-  if (right_is_attr) {
-    if(right_attr != nullptr)
-      condition->right_attr = *right_attr;
-  } else {
-    if(right_value != nullptr)
-      condition->right_value = *right_value;
+  if(right_attr != nullptr || right_value != nullptr){
+    if (right_is_attr) {
+        condition->right_attr = *right_attr;
+    } else {
+        condition->right_value = *right_value;
+    }
   }
 }
 
