@@ -365,7 +365,7 @@ bool filter(const shared_ptr<TupleValue> &left,const shared_ptr<TupleValue> &rig
   return false;
 }
 
-RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,TupleSet &tuple_set){
+RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,TupleSet &tuple_set,std::stringstream &ss){
   // 处理主查询
   SelectExeNode *select_node = new SelectExeNode;
   const char *table_name = selects.relations[1];
@@ -652,6 +652,8 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
           }
           float avg = sum / cnt;
 
+          ss<< to_string(avg) << endl;
+
           shared_ptr<TupleValue> avg_val(new FloatValue(avg,0));
           for(auto iter = tmp_tuple.begin(); iter != tmp_tuple.end(); ){
             bool res;
@@ -659,6 +661,8 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
               res = filter(iter->get_pointer(postion), avg_val,condition.comp, FLOATS);
             else
               res = filter(avg_val, iter->get_pointer(postion),condition.comp, FLOATS);
+            
+            ss << res<< endl;
             if(!res){
               iter = tmp_tuple.erase(iter);
             }else
@@ -702,7 +706,8 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
 
   if(is_sub_query){
     TupleSet tuple_set;
-    RC rc = do_sub_query(trx,session,db,selects,tuple_set);
+    RC rc = do_sub_query(trx,session,db,selects,tuple_set,ss);
+    session_event->set_response(ss.str());
     if(rc != RC::SUCCESS){
       end_trx_if_need(session, trx, false);
       return rc;
