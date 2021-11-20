@@ -700,6 +700,7 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   if(is_sub_query){
     TupleSet tuple_set;
     RC rc = do_sub_query(trx,session,db,selects,tuple_set,ss);
+    session_event->set_response(ss.str());
     if(rc != RC::SUCCESS){
       end_trx_if_need(session, trx, false);
       return rc;
