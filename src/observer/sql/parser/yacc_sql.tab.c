@@ -2627,7 +2627,7 @@ yyreduce:
 
 		Condition condition;
 		condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 0, NULL, right_value);
-		CONTEXT->sub_query_conditions[CONTEXT->condition_length++] = condition;
+		CONTEXT->sub_query_conditions[CONTEXT->sub_query_condition_length++] = condition;
 
 	}
 #line 2634 "yacc_sql.tab.c"
@@ -2641,7 +2641,7 @@ yyreduce:
 
 		Condition condition;
 		condition_init(&condition, CONTEXT->comp, 0, NULL, left_value, 0, NULL, right_value);
-		CONTEXT->sub_query_conditions[CONTEXT->condition_length++] = condition;
+		CONTEXT->sub_query_conditions[CONTEXT->sub_query_condition_length++] = condition;
 
 	}
 #line 2648 "yacc_sql.tab.c"
@@ -2657,7 +2657,7 @@ yyreduce:
 
 		Condition condition;
 		condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 1, &right_attr, NULL);
-		CONTEXT->sub_query_conditions[CONTEXT->condition_length++] = condition;
+		CONTEXT->sub_query_conditions[CONTEXT->sub_query_condition_length++] = condition;
 
 	}
 #line 2664 "yacc_sql.tab.c"
@@ -2672,7 +2672,7 @@ yyreduce:
 
 			Condition condition;
 			condition_init(&condition, CONTEXT->comp, 0, NULL, left_value, 1, &right_attr, NULL);
-			CONTEXT->sub_query_conditions[CONTEXT->condition_length++] = condition;
+			CONTEXT->sub_query_conditions[CONTEXT->sub_query_condition_length++] = condition;
 		
 		}
 #line 2679 "yacc_sql.tab.c"
@@ -2687,7 +2687,7 @@ yyreduce:
 
 			Condition condition;
 			condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 0, NULL, right_value);
-			CONTEXT->sub_query_conditions[CONTEXT->condition_length++] = condition;		
+			CONTEXT->sub_query_conditions[CONTEXT->sub_query_condition_length++] = condition;		
 							
     }
 #line 2694 "yacc_sql.tab.c"
@@ -2703,7 +2703,7 @@ yyreduce:
 
 			Condition condition;
 			condition_init(&condition, CONTEXT->comp, 0, NULL, left_value, 1, &right_attr, NULL);
-			CONTEXT->sub_query_conditions[CONTEXT->condition_length++] = condition;
+			CONTEXT->sub_query_conditions[CONTEXT->sub_query_condition_length++] = condition;
 									
     }
 #line 2710 "yacc_sql.tab.c"

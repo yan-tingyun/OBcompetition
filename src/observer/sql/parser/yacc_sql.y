@@ -946,7 +946,7 @@ sq_cond:
 
 		Condition condition;
 		condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 0, NULL, right_value);
-		CONTEXT->sub_query_conditions[CONTEXT->condition_length++] = condition;
+		CONTEXT->sub_query_conditions[CONTEXT->sub_query_condition_length++] = condition;
 
 	}
 	|value comOp value 
@@ -956,7 +956,7 @@ sq_cond:
 
 		Condition condition;
 		condition_init(&condition, CONTEXT->comp, 0, NULL, left_value, 0, NULL, right_value);
-		CONTEXT->sub_query_conditions[CONTEXT->condition_length++] = condition;
+		CONTEXT->sub_query_conditions[CONTEXT->sub_query_condition_length++] = condition;
 
 	}
 	|ID comOp ID 
@@ -968,7 +968,7 @@ sq_cond:
 
 		Condition condition;
 		condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 1, &right_attr, NULL);
-		CONTEXT->sub_query_conditions[CONTEXT->condition_length++] = condition;
+		CONTEXT->sub_query_conditions[CONTEXT->sub_query_condition_length++] = condition;
 
 	}
     |value comOp ID
@@ -979,7 +979,7 @@ sq_cond:
 
 			Condition condition;
 			condition_init(&condition, CONTEXT->comp, 0, NULL, left_value, 1, &right_attr, NULL);
-			CONTEXT->sub_query_conditions[CONTEXT->condition_length++] = condition;
+			CONTEXT->sub_query_conditions[CONTEXT->sub_query_condition_length++] = condition;
 		
 		}
     |ID DOT ID comOp value
@@ -990,7 +990,7 @@ sq_cond:
 
 			Condition condition;
 			condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 0, NULL, right_value);
-			CONTEXT->sub_query_conditions[CONTEXT->condition_length++] = condition;		
+			CONTEXT->sub_query_conditions[CONTEXT->sub_query_condition_length++] = condition;		
 							
     }
     |value comOp ID DOT ID
@@ -1002,7 +1002,7 @@ sq_cond:
 
 			Condition condition;
 			condition_init(&condition, CONTEXT->comp, 0, NULL, left_value, 1, &right_attr, NULL);
-			CONTEXT->sub_query_conditions[CONTEXT->condition_length++] = condition;
+			CONTEXT->sub_query_conditions[CONTEXT->sub_query_condition_length++] = condition;
 									
     }
 comOp:
