@@ -84,11 +84,19 @@ void condition_init(Condition *condition, CompOp comp,
 
   condition->right_is_attr = right_is_attr;
   if (right_is_attr) {
-    condition->right_attr = *right_attr;
+    if(right_attr != nullptr)
+      condition->right_attr = *right_attr;
   } else {
-    condition->right_value = *right_value;
+    if(right_value != nullptr)
+      condition->right_value = *right_value;
   }
 }
+
+void condition_append_subquery(Condition *condition,Selects *selects){
+  condition->sub_query = (Selects *)malloc(sizeof(Selects));
+  condition->sub_query = selects;
+}
+
 void condition_destroy(Condition *condition) {
   if (condition->left_is_attr) {
     relation_attr_destroy(&condition->left_attr);
@@ -100,6 +108,9 @@ void condition_destroy(Condition *condition) {
   } else {
     value_destroy(&condition->right_value);
   }
+
+  if(condition->sub_query != nullptr)
+    selects_destroy(condition->sub_query);
 }
 
 void attr_info_init(AttrInfo *attr_info, const char *name, AttrType type, size_t length, size_t is_null) {

@@ -21,6 +21,10 @@ typedef struct ParserContext {
   Condition conditions[MAX_NUM];
   CompOp comp;
 	char id[MAX_NUM];
+
+  Selects simple_sub_query;		
+  Condition sub_query_conditions[MAX_NUM];
+  size_t sub_query_condition_length;
 } ParserContext;
 
 //获取子串
@@ -45,6 +49,7 @@ void yyerror(yyscan_t scanner, const char *str)
   context->select_length = 0;
   context->value_length = 0;
   context->record_num = 0;
+  context->sub_query_condition_length = 0;
   context->ssql->sstr.insertion.value_num = 0;
   context->ssql->sstr.insertion.record_num = 0;
   context->ssql->sstr.selection.order_num = 0;
@@ -821,8 +826,185 @@ condition:
 			// $$->right_attr.relation_name=$5;
 			// $$->right_attr.attribute_name=$7;
     }
-    ;
 
+
+	/* sub query part*/
+	| ID comOp sub_query {
+		// where id in (sub query) / not in
+		RelAttr left_attr;
+		relation_attr_init(&left_attr, NULL, $1);
+		Condition condition;
+		condition_append_subquery(&condition,&CONTEXT->simple_sub_query);
+		condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 0, NULL, NULL);
+		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
+
+	}
+	| ID DOT ID comOp sub_query {
+		// where table.id > < = (sub query)
+		// 这种subquery只能有一行返回值
+		RelAttr left_attr;
+		relation_attr_init(&left_attr, $1, $3);
+		Condition condition;
+		condition_append_subquery(&condition,&CONTEXT->simple_sub_query);
+		condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 0, NULL, NULL);
+		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
+	}
+    ;
+sub_query:
+	LBRACE SELECT sub_query_attr FROM ID sub_query_cond RBRACE{
+		selects_append_relation(&CONTEXT->simple_sub_query, $5);
+		selects_append_conditions(&CONTEXT->simple_sub_query, CONTEXT->sub_query_conditions, CONTEXT->sub_query_condition_length);
+		CONTEXT->sub_query_condition_length=0;
+		CONTEXT->value_length = 0;
+	}
+	;
+sub_query_attr:
+	ID {
+		RelAttr attr;
+		relation_attr_init(&attr, NULL, $1);
+		selects_append_aggretype(&CONTEXT->simple_sub_query, NOTAGG);
+		selects_append_attribute(&CONTEXT->simple_sub_query, &attr);
+	}
+	| ID DOT ID {
+		RelAttr attr;
+		relation_attr_init(&attr, $1, $3);
+		selects_append_aggretype(&CONTEXT->simple_sub_query, NOTAGG);
+		selects_append_attribute(&CONTEXT->simple_sub_query, &attr);
+	}
+	| COUNT LBRACE STAR RBRACE {
+		RelAttr attr;
+		relation_attr_init(&attr, NULL, "*");
+		selects_append_aggretype(&CONTEXT->simple_sub_query, COUNT_STAR_F);
+		selects_append_attribute(&CONTEXT->simple_sub_query, &attr);
+	} 
+	| COUNT LBRACE ID RBRACE {
+		RelAttr attr;
+		relation_attr_init(&attr, NULL, $3);
+		selects_append_aggretype(&CONTEXT->simple_sub_query, COUNT_F);
+		selects_append_attribute(&CONTEXT->simple_sub_query, &attr);
+	}
+	| COUNT LBRACE ID DOT ID RBRACE {
+		RelAttr attr;
+		relation_attr_init(&attr, $3, $5);
+		selects_append_aggretype(&CONTEXT->simple_sub_query, COUNT_F);
+		selects_append_attribute(&CONTEXT->simple_sub_query, &attr);
+	} 
+	| MIN LBRACE ID RBRACE {
+		RelAttr attr;
+		relation_attr_init(&attr, NULL, $3);
+		selects_append_aggretype(&CONTEXT->simple_sub_query, MIN_F);
+		selects_append_attribute(&CONTEXT->simple_sub_query, &attr);
+	}
+	| MIN LBRACE ID DOT ID RBRACE {
+		RelAttr attr;
+		relation_attr_init(&attr, $3, $5);
+		selects_append_aggretype(&CONTEXT->simple_sub_query, MIN_F);
+		selects_append_attribute(&CONTEXT->simple_sub_query, &attr);		
+	}
+	| MAX LBRACE ID RBRACE {
+		RelAttr attr;
+		relation_attr_init(&attr, NULL, $3);
+		selects_append_aggretype(&CONTEXT->simple_sub_query, MAX_F);
+		selects_append_attribute(&CONTEXT->simple_sub_query, &attr);
+	}
+	| MAX LBRACE ID DOT ID RBRACE {
+		RelAttr attr;
+		relation_attr_init(&attr, $3, $5);
+		selects_append_aggretype(&CONTEXT->simple_sub_query, MAX_F);
+		selects_append_attribute(&CONTEXT->simple_sub_query, &attr);		
+	}
+	| AVG LBRACE ID RBRACE {
+		RelAttr attr;
+		relation_attr_init(&attr, NULL, $3);
+		selects_append_aggretype(&CONTEXT->simple_sub_query, AVG_F);
+		selects_append_attribute(&CONTEXT->simple_sub_query, &attr);		
+	}
+	| AVG LBRACE ID DOT ID RBRACE {
+		RelAttr attr;
+		relation_attr_init(&attr, $3, $5);
+		selects_append_aggretype(&CONTEXT->simple_sub_query, AVG_F);
+		selects_append_attribute(&CONTEXT->simple_sub_query, &attr);			
+	}
+	;
+sub_query_cond:
+	/* empty */
+	| WHERE sq_cond sq_cond_list {
+	}
+	;
+sq_cond_list:
+	/* empty */
+	| AND sq_cond sq_cond_list {
+	}
+	;
+sq_cond:
+	ID comOp value 
+	{
+		RelAttr left_attr;
+		relation_attr_init(&left_attr, NULL, $1);
+
+		Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
+
+		Condition condition;
+		condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 0, NULL, right_value);
+		CONTEXT->sub_query_conditions[CONTEXT->condition_length++] = condition;
+
+	}
+	|value comOp value 
+	{
+		Value *left_value = &CONTEXT->values[CONTEXT->value_length - 2];
+		Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
+
+		Condition condition;
+		condition_init(&condition, CONTEXT->comp, 0, NULL, left_value, 0, NULL, right_value);
+		CONTEXT->sub_query_conditions[CONTEXT->condition_length++] = condition;
+
+	}
+	|ID comOp ID 
+	{
+		RelAttr left_attr;
+		relation_attr_init(&left_attr, NULL, $1);
+		RelAttr right_attr;
+		relation_attr_init(&right_attr, NULL, $3);
+
+		Condition condition;
+		condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 1, &right_attr, NULL);
+		CONTEXT->sub_query_conditions[CONTEXT->condition_length++] = condition;
+
+	}
+    |value comOp ID
+		{
+			Value *left_value = &CONTEXT->values[CONTEXT->value_length - 1];
+			RelAttr right_attr;
+			relation_attr_init(&right_attr, NULL, $3);
+
+			Condition condition;
+			condition_init(&condition, CONTEXT->comp, 0, NULL, left_value, 1, &right_attr, NULL);
+			CONTEXT->sub_query_conditions[CONTEXT->condition_length++] = condition;
+		
+		}
+    |ID DOT ID comOp value
+		{
+			RelAttr left_attr;
+			relation_attr_init(&left_attr, $1, $3);
+			Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
+
+			Condition condition;
+			condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 0, NULL, right_value);
+			CONTEXT->sub_query_conditions[CONTEXT->condition_length++] = condition;		
+							
+    }
+    |value comOp ID DOT ID
+		{
+			Value *left_value = &CONTEXT->values[CONTEXT->value_length - 1];
+
+			RelAttr right_attr;
+			relation_attr_init(&right_attr, $3, $5);
+
+			Condition condition;
+			condition_init(&condition, CONTEXT->comp, 0, NULL, left_value, 1, &right_attr, NULL);
+			CONTEXT->sub_query_conditions[CONTEXT->condition_length++] = condition;
+									
+    }
 comOp:
   	  EQ { CONTEXT->comp = EQUAL_TO; }
     | LT { CONTEXT->comp = LESS_THAN; }
@@ -832,6 +1014,8 @@ comOp:
     | NE { CONTEXT->comp = NOT_EQUAL; }
 	| IS { CONTEXT->comp = IS_NULL; }
 	| IS NOT { CONTEXT->comp = IS_NOT_NULL; }
+	| IN { CONTEXT->comp = IN_SUB_QUERY; }
+	| NOT IN { CONTEXT->comp = NOT_IN_SUB_QUERY; }
     ;
 group_by:
 	/* empty */

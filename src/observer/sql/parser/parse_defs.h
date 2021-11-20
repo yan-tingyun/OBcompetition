@@ -32,6 +32,8 @@ typedef enum {
   GREAT_THAN,   //">"     5
   IS_NULL,      // "is"   6
   IS_NOT_NULL,  //"is not" 7
+  IN_SUB_QUERY,
+  NOT_IN_SUB_QUERY,
   NO_OP
 } CompOp;
 
@@ -59,6 +61,8 @@ typedef struct _Order{
   RelAttr order_attr;
 } Order;
 
+struct Selects;
+
 typedef struct _Condition {
   int left_is_attr;    // TRUE if left-hand side is an attribute
                        // 1时，操作符左边是属性名，0时，是属性值
@@ -69,10 +73,12 @@ typedef struct _Condition {
                        // 1时，操作符右边是属性名，0时，是属性值
   RelAttr right_attr;  // right-hand side attribute if right_is_attr = TRUE 右边的属性
   Value right_value;   // right-hand side value if right_is_attr = FALSE
+  
+  struct Selects *sub_query;
 } Condition;
 
 // struct of select
-typedef struct {
+typedef struct Selects {
   size_t    attr_num;               // Length of attrs in Select clause
   RelAttr   attributes[MAX_NUM];    // attrs in Select clause
                                     // select - from 中间的全部，是table.attr / 单标 attr / * / table.*
@@ -215,6 +221,8 @@ void value_destroy(Value *value);
 
 void condition_init(Condition *condition, CompOp comp, int left_is_attr, RelAttr *left_attr, Value *left_value,
     int right_is_attr, RelAttr *right_attr, Value *right_value);
+void condition_append_subquery(Condition *condition,Selects *selects);
+
 void condition_destroy(Condition *condition);
 
 void attr_info_init(AttrInfo *attr_info, const char *name, AttrType type, size_t length, size_t is_null);

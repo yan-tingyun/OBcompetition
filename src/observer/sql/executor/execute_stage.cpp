@@ -320,6 +320,15 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   Trx *trx = session->current_trx();
   const Selects &selects = sql->sstr.selection;
 
+  cout << selects.condition_num << endl;
+  for(int i = 0; i < selects.condition_num; ++i){
+    if(selects.conditions[i].sub_query != nullptr){
+      // do sub query
+      const Selects sub_query = *selects.conditions[i].sub_query;
+      return RC::GENERIC_ERROR;
+    }
+  }
+
   // group by list合法性校验 (其实应该先对属性、判断条件的合法性初步校验，可以省去后面的步骤)
   // 多表查询时，对group by的属性初步校验，如果不带表名则直接结束返回failure
   if(selects.relation_num > 1){
