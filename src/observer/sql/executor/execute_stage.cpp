@@ -525,7 +525,8 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
         return rc;
       }
       
-
+      if(sub_select.aggre_type[0] == AVG_F)
+        ss << "ok" << endl;
 
       // 校验查询字段是否存在、两边字段是否相同类型
       int postion;
@@ -556,8 +557,7 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
 
       vector<Tuple> tmp_tuple = tuple_set.tuples();
 
-      if(sub_select.aggre_type[0] == AVG_F)
-        ss << "ok" << endl;
+    
 
       // 判断查询类型
       switch(sub_select.aggre_type[0]){
