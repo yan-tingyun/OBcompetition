@@ -454,6 +454,7 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
       const char *sub_table_name = selects.relations[0];
       TupleSchema sub_schema;
 
+      ss<<"ok" << endl;
       Table * sub_table = DefaultHandler::get_default().find_table(db, sub_table_name);
       if (nullptr == sub_table) {
         LOG_WARN("No such table [%s] in db [%s]", sub_table_name, db);
@@ -461,9 +462,10 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
         delete sub_select_node;
         return RC::SCHEMA_TABLE_NOT_EXIST;
       }
+      ss<<"ok" << endl;
 
       const RelAttr &attr = sub_select.attributes[0];
-      if (nullptr == attr.relation_name || 0 == strcmp(sub_select.relations[0], attr.relation_name)){
+      if (nullptr == attr.relation_name || 0 == strcmp(sub_table_name, attr.relation_name)){
         RC rc = schema_add_field(sub_table, attr.attribute_name, sub_schema);
         if (rc != RC::SUCCESS) {
           delete select_node;
@@ -699,6 +701,7 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   if(is_sub_query){
     TupleSet tuple_set;
     RC rc = do_sub_query(trx,session,db,selects,tuple_set,ss);
+    session_event->set_response(ss.str());
     if(rc != RC::SUCCESS){
       end_trx_if_need(session, trx, false);
       return rc;
