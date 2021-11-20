@@ -93,9 +93,10 @@ void condition_init(Condition *condition, CompOp comp,
   }
 }
 
-void condition_append_subquery(Condition *condition,Selects *selects){
+void condition_append_subquery(Condition *condition,Selects *selects, size_t sq_pos){
   condition->sub_query = (Selects *)malloc(sizeof(Selects));
   condition->sub_query = selects;
+  condition->sq_pos = sq_pos;
 }
 
 void condition_destroy(Condition *condition) {

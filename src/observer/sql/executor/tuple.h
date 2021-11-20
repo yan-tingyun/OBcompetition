@@ -130,6 +130,7 @@ public:
 
   void print_for_aggrefun(ostream &os) const;
   void print_for_multitables(ostream &os, vector<pair<int,int>> &print_col,unordered_map<string, pair<int,int>> &table_to_valuepos, const Selects selects) const;
+  void print_single_table(std::ostream &os) const;
 public:
   static void from_table(const Table *table, TupleSchema &schema);
 
@@ -174,6 +175,8 @@ public:
   void print_for_join(const Selects &selects, std::ostream &os, unordered_map<string, pair<int,int>> &table_to_valuepos, const vector<int> &pos_to_sortfunc) const;
 
   void print_for_group(const Selects &selects, std::ostream &os,const vector<int> &pos_to_sortfunc);
+
+  void print_single_table(std::ostream &os) const;
 private:
   std::vector<Tuple> tuples_;
   TupleSchema schema_;

@@ -75,6 +75,7 @@ typedef struct _Condition {
   Value right_value;   // right-hand side value if right_is_attr = FALSE
   
   struct Selects *sub_query;
+  size_t sq_pos;       // 0 在左， 1在右边
 } Condition;
 
 // struct of select
@@ -221,7 +222,7 @@ void value_destroy(Value *value);
 
 void condition_init(Condition *condition, CompOp comp, int left_is_attr, RelAttr *left_attr, Value *left_value,
     int right_is_attr, RelAttr *right_attr, Value *right_value);
-void condition_append_subquery(Condition *condition,Selects *selects);
+void condition_append_subquery(Condition *condition,Selects *selects, size_t sq_pos);
 
 void condition_destroy(Condition *condition);
 

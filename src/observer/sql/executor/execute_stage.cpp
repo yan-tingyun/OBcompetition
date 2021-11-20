@@ -41,6 +41,7 @@ RC create_selection_executor(Trx *trx, const Selects &selects, const char *db, c
 RC sort_tuple_sets(const Selects &selects, TupleSet &tuple_set, vector<int> &pos_to_sortfunc);
 void sortfunc_dfs(const Selects &selects, TupleSet &tuple_set, vector<int> &pos_to_sortfunc,vector<int> &order_field_index, int start, int end, int cur);
 RC group_by_func(const Selects &selects, TupleSet &tuple_set);
+static RC schema_add_field(Table *table, const char *field_name, TupleSchema &schema);
 
 //! Constructor
 ExecuteStage::ExecuteStage(const char *tag) : Stage(tag) {}
@@ -311,6 +312,369 @@ RC cartesian(vector<TupleSet> &tuple_sets, TupleSet &tuple_set, int cur_index, c
 
 }
 
+bool filter(const shared_ptr<TupleValue> &left,const shared_ptr<TupleValue> &right, CompOp compop, AttrType type){
+  int res = 0;
+  switch (type)
+  {
+  case INTS:{
+    int v1 = left->return_val();
+    int v2 = right->return_val();
+    res = v1-v2;
+  }
+    break;
+  case FLOATS:{
+    float v1 = left->return_val();
+    float v2 = right->return_val();
+    float v = v1-v2;
+    if(v < 1e-6 && v > -1e-6)
+      res = 0;
+    else
+      res = v > 0 ? 1 : -1; 
+  }
+  break;
+  case DATES:{
+    res = left->return_char_val().compare(right->return_char_val());
+  }
+  break;
+  case CHARS:{
+    res = left->return_char_val().compare(right->return_char_val());
+  }
+  break;
+  default:
+    break;
+  }
+
+  switch (compop) {
+    case EQUAL_TO:
+      return 0 == res;
+    case LESS_EQUAL:
+      return res <= 0;
+    case NOT_EQUAL:
+      return res != 0;
+    case LESS_THAN:
+      return res < 0;
+    case GREAT_EQUAL:
+      return res >= 0;
+    case GREAT_THAN:
+      return res > 0;
+
+    default:
+      break;
+  }
+
+  return false;
+}
+
+RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,TupleSet &tuple_set){
+  // 处理主查询
+  SelectExeNode *select_node = new SelectExeNode;
+  const char *table_name = selects.relations[0];
+  TupleSchema schema;
+  Table * table = DefaultHandler::get_default().find_table(db, table_name);
+  if (nullptr == table) {
+    LOG_WARN("No such table [%s] in db [%s]", table_name, db);
+    return RC::SCHEMA_TABLE_NOT_EXIST;
+  }
+
+  for (int i = selects.attr_num - 1; i >= 0; i--) {
+    const RelAttr &attr = selects.attributes[i];
+    if (nullptr == attr.relation_name || 0 == strcmp(table_name, attr.relation_name)) {
+      if (0 == strcmp("*", attr.attribute_name)) {
+        // 列出这张表所有字段
+        TupleSchema::from_table(table, schema);
+        break; // 没有校验，给出* 之后，再写字段的错误
+      } else {
+        // 列出这张表相关字段
+        RC rc = schema_add_field(table, attr.attribute_name, schema);
+        if (rc != RC::SUCCESS) {
+          delete select_node;
+          return rc;
+        }
+      }
+    }
+  }
+
+
+  // 找出仅与此表相关的过滤条件, 或者都是值的过滤条件
+  std::vector<DefaultConditionFilter *> condition_filters;
+  for (size_t i = 0; i < selects.condition_num; i++) {
+    const Condition &condition = selects.conditions[i];
+    if(condition.sub_query != nullptr)
+      continue;
+    if ((condition.left_is_attr == 0 && condition.right_is_attr == 0) || // 两边都是值
+        (condition.left_is_attr == 1 && condition.right_is_attr == 0 && match_table(selects, condition.left_attr.relation_name, table_name)) ||  // 左边是属性右边是值
+        (condition.left_is_attr == 0 && condition.right_is_attr == 1 && match_table(selects, condition.right_attr.relation_name, table_name)) ||  // 左边是值，右边是属性名
+        (condition.left_is_attr == 1 && condition.right_is_attr == 1 &&
+            match_table(selects, condition.left_attr.relation_name, table_name) && match_table(selects, condition.right_attr.relation_name, table_name)) // 左右都是属性名，并且表名都符合
+        ) {
+      DefaultConditionFilter *condition_filter = new DefaultConditionFilter();
+      RC rc = condition_filter->init(*table, condition);
+      if (rc != RC::SUCCESS) {
+        delete condition_filter;
+        delete select_node;
+        for (DefaultConditionFilter * &filter : condition_filters) {
+          delete filter;
+        }
+        return rc;
+      }
+      condition_filters.push_back(condition_filter);
+    }
+  }
+
+  RC rc = select_node->init(trx, table, std::move(schema), std::move(condition_filters));
+  if(rc != RC::SUCCESS){
+    delete select_node;
+    for (DefaultConditionFilter * &filter : condition_filters) {
+      delete filter;
+    }
+    return rc;
+  }
+
+  if(select_node == nullptr){
+    LOG_ERROR("No table given");
+    delete select_node;
+    end_trx_if_need(session, trx, false);
+    return RC::SQL_SYNTAX;
+  }
+
+  rc = select_node->execute(tuple_set);
+  if (rc != RC::SUCCESS) {
+    delete select_node;
+    end_trx_if_need(session, trx, false);
+    return rc;
+  }
+
+
+
+  // 处理子查询
+  for (size_t c = 0; c < selects.condition_num; c++) {
+    const Condition &condition = selects.conditions[c];
+    if(condition.sub_query != nullptr){
+      const Selects sub_select = *condition.sub_query;
+      SelectExeNode *sub_select_node = new SelectExeNode;
+      const char *sub_table_name = sub_select.relations[0];
+      TupleSchema sub_schema;
+      Table * sub_table = DefaultHandler::get_default().find_table(db, sub_select.relations[0]);
+      if (nullptr == sub_table) {
+        LOG_WARN("No such table [%s] in db [%s]", sub_select.relations[0], db);
+        delete select_node;
+        delete sub_select_node;
+        return RC::SCHEMA_TABLE_NOT_EXIST;
+      }
+
+      const RelAttr &attr = sub_select.attributes[0];
+      if (nullptr == attr.relation_name || 0 == strcmp(sub_select.relations[0], attr.relation_name)){
+        RC rc = schema_add_field(sub_table, attr.attribute_name, sub_schema);
+        if (rc != RC::SUCCESS) {
+          delete select_node;
+          delete sub_select_node;
+          return rc;
+        }
+      }else{
+        LOG_ERROR("NO such field in sub query");
+        delete select_node;
+        delete sub_select_node;
+        return RC::SCHEMA_FIELD_NOT_EXIST;
+      }
+
+      std::vector<DefaultConditionFilter *> condition_filters;
+      for (size_t i = 0; i < sub_select.condition_num; i++) {
+        const Condition &sub_condition = sub_select.conditions[i];
+        if ((sub_condition.left_is_attr == 0 && sub_condition.right_is_attr == 0) || // 两边都是值
+            (sub_condition.left_is_attr == 1 && sub_condition.right_is_attr == 0 && match_table(sub_select, sub_condition.left_attr.relation_name, sub_table_name)) ||  // 左边是属性右边是值
+            (sub_condition.left_is_attr == 0 && sub_condition.right_is_attr == 1 && match_table(sub_select, sub_condition.right_attr.relation_name, sub_table_name)) ||  // 左边是值，右边是属性名
+            (sub_condition.left_is_attr == 1 && sub_condition.right_is_attr == 1 &&
+                match_table(sub_select, sub_condition.left_attr.relation_name, sub_table_name) && match_table(sub_select, sub_condition.right_attr.relation_name, sub_table_name)) // 左右都是属性名，并且表名都符合
+            ) {
+          DefaultConditionFilter *condition_filter = new DefaultConditionFilter();
+          RC rc = condition_filter->init(*sub_table, sub_condition);
+          if (rc != RC::SUCCESS) {
+            delete condition_filter;
+            for (DefaultConditionFilter * &filter : condition_filters) {
+              delete filter;
+            }
+            delete select_node;
+            delete sub_select_node;
+            return rc;
+          }
+          condition_filters.push_back(condition_filter);
+        }
+      }
+      rc = sub_select_node->init(trx, sub_table, std::move(sub_schema), std::move(condition_filters));
+
+      if(rc != RC::SUCCESS){
+        delete select_node;
+        delete sub_select_node;
+        for (DefaultConditionFilter * &filter : condition_filters) {
+          delete filter;
+        }
+        return rc;
+      }
+
+      TupleSet sub_set;
+      rc = sub_select_node->execute(sub_set);
+      if (rc != RC::SUCCESS) {
+        delete select_node;
+        delete sub_select_node;
+        end_trx_if_need(session, trx, false);
+        return rc;
+      }
+
+      // 校验查询字段是否存在、两边字段是否相同类型
+      int postion;
+      if(condition.sq_pos == 0){
+        postion = tuple_set.get_schema().index_of_field(table_name, condition.right_attr.attribute_name);
+        if(postion < 0){
+          delete select_node;
+          delete sub_select_node;
+          end_trx_if_need(session, trx, false);
+          return RC::GENERIC_ERROR;
+        }
+      }else{
+        postion = tuple_set.get_schema().index_of_field(table_name, condition.left_attr.attribute_name);
+        if(postion < 0){
+          delete select_node;
+          delete sub_select_node;
+          end_trx_if_need(session, trx, false);
+          return RC::GENERIC_ERROR;
+        }
+      }
+
+      if(tuple_set.get_schema().field(postion).type() != sub_set.get_schema().field(0).type()){
+        delete select_node;
+        delete sub_select_node;
+        end_trx_if_need(session, trx, false);
+        return RC::GENERIC_ERROR;
+      }
+
+      vector<Tuple> tmp_tuple = tuple_set.tuples();
+
+      // 判断查询类型
+      switch(sub_select.aggre_type[0]){
+        case NOTAGG:{
+          if(condition.comp < 8 || condition.sq_pos == 0){
+            delete select_node;
+            delete sub_select_node;
+            end_trx_if_need(session, trx, false);
+            return RC::GENERIC_ERROR;
+          }
+          
+          unordered_set<string> set;
+          for (const Tuple &item : sub_set.tuples()){
+            set.insert(item.get(0).return_char_val());
+          }
+          for(auto iter = tmp_tuple.begin(); iter != tmp_tuple.end(); ){
+            if(condition.comp == IN_SUB_QUERY){
+              if(set.count(iter->get(postion).return_char_val()) == 0){
+                iter = tmp_tuple.erase(iter);
+              }else{
+                ++iter;
+              }
+            }else{
+              if(set.count(iter->get(postion).return_char_val()) != 0){
+                iter = tmp_tuple.erase(iter);
+              }else{
+                ++iter;
+              }
+            }
+          }
+        }
+        break;
+        case COUNT_STAR_F:
+        case COUNT_F:{
+          float cnt = sub_set.size();
+          shared_ptr<TupleValue> cnt_val(new FloatValue(cnt,0));
+          for(auto iter = tmp_tuple.begin(); iter != tmp_tuple.end(); ){
+            bool res;
+            if(condition.sq_pos == 1)
+              res = filter(iter->get_pointer(postion), cnt_val,condition.comp, FLOATS);
+            else
+              res = filter(cnt_val, iter->get_pointer(postion),condition.comp, FLOATS);
+            if(!res){
+              iter = tmp_tuple.erase(iter);
+            }else
+              ++iter;
+          }
+        }
+        break;
+        case MIN_F:{
+          shared_ptr<TupleValue> min_val = sub_set.get(0).get_pointer(0);
+          for (const Tuple &item : sub_set.tuples()) {
+            if(item.get_pointer(0)->compare(*min_val) < 0)
+              min_val = item.get_pointer(0);                   
+          }
+
+          for(auto iter = tmp_tuple.begin(); iter != tmp_tuple.end(); ){
+            bool res;
+            if(condition.sq_pos == 1)
+              res = filter(iter->get_pointer(postion), min_val,condition.comp, tuple_set.get_schema().field(postion).type());
+            else
+              res = filter(min_val, iter->get_pointer(postion),condition.comp, tuple_set.get_schema().field(postion).type());
+            if(!res){
+              iter = tmp_tuple.erase(iter);
+            }else
+              ++iter;
+          }
+        }
+        break;
+        case MAX_F:{
+          shared_ptr<TupleValue> max_val = sub_set.get(0).get_pointer(0);
+          for (const Tuple &item : sub_set.tuples()) {
+            if(item.get_pointer(0)->compare(*max_val) > 0)
+              max_val = item.get_pointer(0);                   
+          }
+
+          for(auto iter = tmp_tuple.begin(); iter != tmp_tuple.end(); ){
+            bool res;
+            if(condition.sq_pos == 1)
+              res = filter(iter->get_pointer(postion), max_val,condition.comp, tuple_set.get_schema().field(postion).type());
+            else
+              res = filter(max_val, iter->get_pointer(postion),condition.comp, tuple_set.get_schema().field(postion).type());
+            if(!res){
+              iter = tmp_tuple.erase(iter);
+            }else
+              ++iter;
+          }
+        }
+        break;
+        case AVG_F:{
+          float cnt = sub_set.size();
+          float sum = 0;
+          for(auto &item : sub_set.tuples()){
+            sum += item.get(postion).return_val();
+          }
+          float avg = sum / cnt;
+
+          shared_ptr<TupleValue> avg_val(new FloatValue(avg,0));
+          for(auto iter = tmp_tuple.begin(); iter != tmp_tuple.end(); ){
+            bool res;
+            if(condition.sq_pos == 1)
+              res = filter(iter->get_pointer(postion), avg_val,condition.comp, FLOATS);
+            else
+              res = filter(avg_val, iter->get_pointer(postion),condition.comp, FLOATS);
+            if(!res){
+              iter = tmp_tuple.erase(iter);
+            }else
+              ++iter;
+          }
+        }
+        break;
+        default:{
+          delete select_node;
+          delete sub_select_node;
+          return RC::GENERIC_ERROR;
+        }
+      }
+      delete sub_select_node;
+      tuple_set.set_vec_tuple(tmp_tuple);
+
+    }
+  }
+
+  delete select_node;
+  return RC::SUCCESS;
+}
+
 // 这里没有对输入的某些信息做合法性校验，比如查询的列名、where条件中的列名等，没有做必要的合法性校验
 // 需要补充上这一部分. 校验部分也可以放在resolve，不过跟execution放一起也没有关系
 RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_event, std::stringstream &ss) {
@@ -320,13 +684,29 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   Trx *trx = session->current_trx();
   const Selects &selects = sql->sstr.selection;
 
+  bool is_sub_query = false;
   for(int i = 0; i < selects.condition_num; ++i){
     if(selects.conditions[i].sub_query != nullptr){
       // do sub query
-      const Selects sub_query = *selects.conditions[i].sub_query;
-      return RC::GENERIC_ERROR;
+      is_sub_query = true;
+      break;
     }
   }
+
+  if(is_sub_query){
+    TupleSet tuple_set;
+    RC rc = do_sub_query(trx,session,db,selects,tuple_set);
+    if(rc != RC::SUCCESS){
+      end_trx_if_need(session, trx, false);
+      return rc;
+    }
+
+    tuple_set.print_single_table(ss);
+    session_event->set_response(ss.str());
+    end_trx_if_need(session, trx, true);
+    return RC::SUCCESS;
+  }
+
 
   // group by list合法性校验 (其实应该先对属性、判断条件的合法性初步校验，可以省去后面的步骤)
   // 多表查询时，对group by的属性初步校验，如果不带表名则直接结束返回failure
