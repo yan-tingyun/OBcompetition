@@ -573,9 +573,9 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
           }
           
           unordered_set<string> set;
+
           if(sub_set.size() == 0 && condition.comp == NOT_IN_SUB_QUERY)
             break;
-
           for (const Tuple &item : sub_set.tuples()){
             set.insert(item.get(0).return_char_val());
           }

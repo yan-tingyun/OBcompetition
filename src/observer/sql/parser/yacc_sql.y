@@ -20,6 +20,7 @@ typedef struct ParserContext {
   Value values[MAX_NUM];
   Condition conditions[MAX_NUM];
   CompOp comp;
+  CompOp sub_comp;
 	char id[MAX_NUM];
 
   Selects simple_sub_query;		
@@ -958,7 +959,7 @@ sq_cond_list:
 	}
 	;
 sq_cond:
-	ID comOp value 
+	ID sub_comOp value 
 	{
 		RelAttr left_attr;
 		relation_attr_init(&left_attr, NULL, $1);
@@ -966,21 +967,21 @@ sq_cond:
 		Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
 
 		Condition condition;
-		condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 0, NULL, right_value);
+		condition_init(&condition, CONTEXT->sub_comp, 1, &left_attr, NULL, 0, NULL, right_value);
 		CONTEXT->sub_query_conditions[CONTEXT->sub_query_condition_length++] = condition;
 
 	}
-	|value comOp value 
+	|value sub_comOp value 
 	{
 		Value *left_value = &CONTEXT->values[CONTEXT->value_length - 2];
 		Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
 
 		Condition condition;
-		condition_init(&condition, CONTEXT->comp, 0, NULL, left_value, 0, NULL, right_value);
+		condition_init(&condition, CONTEXT->sub_comp, 0, NULL, left_value, 0, NULL, right_value);
 		CONTEXT->sub_query_conditions[CONTEXT->sub_query_condition_length++] = condition;
 
 	}
-	|ID comOp ID 
+	|ID sub_comOp ID 
 	{
 		RelAttr left_attr;
 		relation_attr_init(&left_attr, NULL, $1);
@@ -988,33 +989,33 @@ sq_cond:
 		relation_attr_init(&right_attr, NULL, $3);
 
 		Condition condition;
-		condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 1, &right_attr, NULL);
+		condition_init(&condition, CONTEXT->sub_comp, 1, &left_attr, NULL, 1, &right_attr, NULL);
 		CONTEXT->sub_query_conditions[CONTEXT->sub_query_condition_length++] = condition;
 
 	}
-    |value comOp ID
+    |value sub_comOp ID
 		{
 			Value *left_value = &CONTEXT->values[CONTEXT->value_length - 1];
 			RelAttr right_attr;
 			relation_attr_init(&right_attr, NULL, $3);
 
 			Condition condition;
-			condition_init(&condition, CONTEXT->comp, 0, NULL, left_value, 1, &right_attr, NULL);
+			condition_init(&condition, CONTEXT->sub_comp, 0, NULL, left_value, 1, &right_attr, NULL);
 			CONTEXT->sub_query_conditions[CONTEXT->sub_query_condition_length++] = condition;
 		
 		}
-    |ID DOT ID comOp value
+    |ID DOT ID sub_comOp value
 		{
 			RelAttr left_attr;
 			relation_attr_init(&left_attr, $1, $3);
 			Value *right_value = &CONTEXT->values[CONTEXT->value_length - 1];
 
 			Condition condition;
-			condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 0, NULL, right_value);
+			condition_init(&condition, CONTEXT->sub_comp, 1, &left_attr, NULL, 0, NULL, right_value);
 			CONTEXT->sub_query_conditions[CONTEXT->sub_query_condition_length++] = condition;		
 							
     }
-    |value comOp ID DOT ID
+    |value sub_comOp ID DOT ID
 		{
 			Value *left_value = &CONTEXT->values[CONTEXT->value_length - 1];
 
@@ -1022,10 +1023,11 @@ sq_cond:
 			relation_attr_init(&right_attr, $3, $5);
 
 			Condition condition;
-			condition_init(&condition, CONTEXT->comp, 0, NULL, left_value, 1, &right_attr, NULL);
+			condition_init(&condition, CONTEXT->sub_comp, 0, NULL, left_value, 1, &right_attr, NULL);
 			CONTEXT->sub_query_conditions[CONTEXT->sub_query_condition_length++] = condition;
 									
     }
+	;
 comOp:
   	  EQ { CONTEXT->comp = EQUAL_TO; }
     | LT { CONTEXT->comp = LESS_THAN; }
@@ -1037,6 +1039,18 @@ comOp:
 	| IS NOT { CONTEXT->comp = IS_NOT_NULL; }
 	| IN { CONTEXT->comp = IN_SUB_QUERY; }
 	| NOT IN { CONTEXT->comp = NOT_IN_SUB_QUERY; }
+    ;
+sub_comOp:
+  	  EQ { CONTEXT->sub_comp = EQUAL_TO; }
+    | LT { CONTEXT->sub_comp = LESS_THAN; }
+    | GT { CONTEXT->sub_comp = GREAT_THAN; }
+    | LE { CONTEXT->sub_comp = LESS_EQUAL; }
+    | GE { CONTEXT->sub_comp = GREAT_EQUAL; }
+    | NE { CONTEXT->sub_comp = NOT_EQUAL; }
+	| IS { CONTEXT->sub_comp = IS_NULL; }
+	| IS NOT { CONTEXT->sub_comp = IS_NOT_NULL; }
+	| IN { CONTEXT->sub_comp = IN_SUB_QUERY; }
+	| NOT IN { CONTEXT->sub_comp = NOT_IN_SUB_QUERY; }
     ;
 group_by:
 	/* empty */
