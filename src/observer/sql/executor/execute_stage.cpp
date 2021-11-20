@@ -461,7 +461,6 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
         delete sub_select_node;
         return RC::SCHEMA_TABLE_NOT_EXIST;
       }
-      ss<<"ok" << endl;
 
       const RelAttr &attr = sub_select.attributes[0];
       if (nullptr == attr.relation_name || 0 == strcmp(sub_table_name, attr.relation_name)){
@@ -478,7 +477,7 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
         return RC::SCHEMA_FIELD_NOT_EXIST;
       }
 
-      ss<<"ok" << endl;
+
       std::vector<DefaultConditionFilter *> condition_filters;
       for (size_t i = 0; i < sub_select.condition_num; i++) {
         const Condition &sub_condition = sub_select.conditions[i];
@@ -502,7 +501,6 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
           condition_filters.push_back(condition_filter);
         }
       }
-      ss<<"ok" << endl;
 
       rc = sub_select_node->init(trx, sub_table, std::move(sub_schema), std::move(condition_filters));
 
@@ -514,7 +512,6 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
         }
         return rc;
       }
-      ss<<"ok" << endl;
 
       TupleSet sub_set;
       rc = sub_select_node->execute(sub_set);
@@ -524,7 +521,6 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
         end_trx_if_need(session, trx, false);
         return rc;
       }
-      ss<<"ok" << endl;
 
 
       // 校验查询字段是否存在、两边字段是否相同类型
