@@ -555,7 +555,7 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
 
       vector<Tuple> tmp_tuple = tuple_set.tuples();
 
-      if(sub_set.size() == 0){
+      if(sub_set.size() == 0 && condition.comp != NOT_IN_SUB_QUERY){
         tmp_tuple.clear();
         delete sub_select_node;
         tuple_set.set_vec_tuple(tmp_tuple);
