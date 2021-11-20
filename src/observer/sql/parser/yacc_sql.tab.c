@@ -2448,8 +2448,8 @@ yyreduce:
 		RelAttr left_attr;
 		relation_attr_init(&left_attr, NULL, (yyvsp[-2].string));
 		Condition condition;
-		condition_append_subquery(&condition,&CONTEXT->simple_sub_query);
 		condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 0, NULL, NULL);
+		condition_append_subquery(&condition,&CONTEXT->simple_sub_query);
 		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 
 	}
@@ -2464,8 +2464,8 @@ yyreduce:
 		RelAttr left_attr;
 		relation_attr_init(&left_attr, (yyvsp[-4].string), (yyvsp[-2].string));
 		Condition condition;
-		condition_append_subquery(&condition,&CONTEXT->simple_sub_query);
 		condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 0, NULL, NULL);
+		condition_append_subquery(&condition,&CONTEXT->simple_sub_query);
 		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 	}
 #line 2472 "yacc_sql.tab.c"

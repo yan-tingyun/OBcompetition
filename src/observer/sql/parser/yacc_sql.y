@@ -834,8 +834,8 @@ condition:
 		RelAttr left_attr;
 		relation_attr_init(&left_attr, NULL, $1);
 		Condition condition;
-		condition_append_subquery(&condition,&CONTEXT->simple_sub_query);
 		condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 0, NULL, NULL);
+		condition_append_subquery(&condition,&CONTEXT->simple_sub_query);
 		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 
 	}
@@ -845,8 +845,8 @@ condition:
 		RelAttr left_attr;
 		relation_attr_init(&left_attr, $1, $3);
 		Condition condition;
-		condition_append_subquery(&condition,&CONTEXT->simple_sub_query);
 		condition_init(&condition, CONTEXT->comp, 1, &left_attr, NULL, 0, NULL, NULL);
+		condition_append_subquery(&condition,&CONTEXT->simple_sub_query);
 		CONTEXT->conditions[CONTEXT->condition_length++] = condition;
 	}
     ;

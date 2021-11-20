@@ -76,6 +76,7 @@ void condition_init(Condition *condition, CompOp comp,
                     int right_is_attr, RelAttr *right_attr, Value *right_value) {
   condition->comp = comp;
   condition->left_is_attr = left_is_attr;
+  condition->sub_query = nullptr;
   if (left_is_attr) {
     condition->left_attr = *left_attr;
   } else {
