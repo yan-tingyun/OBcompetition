@@ -367,7 +367,6 @@ bool filter(const shared_ptr<TupleValue> &left,const shared_ptr<TupleValue> &rig
 
 RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,TupleSet &tuple_set,std::stringstream &ss){
   // 处理主查询
-  ss << "everything is ok" << endl;
   SelectExeNode *select_node = new SelectExeNode;
   const char *table_name = selects.relations[0];
   TupleSchema schema;
@@ -394,7 +393,6 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
       }
     }
   }
-  ss << "everything is ok" << endl;
 
 
   // 找出仅与此表相关的过滤条件, 或者都是值的过滤条件
@@ -422,6 +420,7 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
       condition_filters.push_back(condition_filter);
     }
   }
+  ss << "ok1" << endl;
 
   RC rc = select_node->init(trx, table, std::move(schema), std::move(condition_filters));
   if(rc != RC::SUCCESS){
@@ -431,6 +430,7 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
     }
     return rc;
   }
+  ss << "ok2" << endl;
 
   if(select_node == nullptr){
     LOG_ERROR("No table given");
@@ -446,7 +446,7 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
     return rc;
   }
 
-
+  ss << "ok3" << endl;
 
   // 处理子查询
   for (size_t c = 0; c < selects.condition_num; c++) {
