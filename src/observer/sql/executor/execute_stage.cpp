@@ -453,13 +453,14 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
       SelectExeNode *sub_select_node = new SelectExeNode;
       const char *sub_table_name = sub_select.relations[0];
       TupleSchema sub_schema;
-      Table * sub_table = DefaultHandler::get_default().find_table(db, sub_select.relations[0]);
+      Table * sub_table = DefaultHandler::get_default().find_table(db, sub_table_name);
       if (nullptr == sub_table) {
-        LOG_WARN("No such table [%s] in db [%s]", sub_select.relations[0], db);
+        LOG_WARN("No such table [%s] in db [%s]", sub_table_name, db);
         delete select_node;
         delete sub_select_node;
         return RC::SCHEMA_TABLE_NOT_EXIST;
       }
+      ss << "ok" << endl;
 
       const RelAttr &attr = sub_select.attributes[0];
       if (nullptr == attr.relation_name || 0 == strcmp(sub_select.relations[0], attr.relation_name)){
@@ -476,7 +477,6 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
         return RC::SCHEMA_FIELD_NOT_EXIST;
       }
 
-      ss<<"ok"<<endl;
 
       std::vector<DefaultConditionFilter *> condition_filters;
       for (size_t i = 0; i < sub_select.condition_num; i++) {
@@ -501,7 +501,7 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
           condition_filters.push_back(condition_filter);
         }
       }
-      ss<<"ok"<<endl;
+
       rc = sub_select_node->init(trx, sub_table, std::move(sub_schema), std::move(condition_filters));
 
       if(rc != RC::SUCCESS){
@@ -512,7 +512,6 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
         }
         return rc;
       }
-      ss<<"ok"<<endl;
 
       TupleSet sub_set;
       rc = sub_select_node->execute(sub_set);
@@ -523,7 +522,6 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
         return rc;
       }
 
-      ss<<"ok"<<endl;
 
       // 校验查询字段是否存在、两边字段是否相同类型
       int postion;
