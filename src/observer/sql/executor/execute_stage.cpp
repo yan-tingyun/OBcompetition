@@ -367,6 +367,7 @@ bool filter(const shared_ptr<TupleValue> &left,const shared_ptr<TupleValue> &rig
 
 RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,TupleSet &tuple_set,std::stringstream &ss){
   // 处理主查询
+  ss << "everything is ok" << endl;
   SelectExeNode *select_node = new SelectExeNode;
   const char *table_name = selects.relations[0];
   TupleSchema schema;
@@ -393,6 +394,7 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
       }
     }
   }
+  ss << "everything is ok" << endl;
 
 
   // 找出仅与此表相关的过滤条件, 或者都是值的过滤条件
@@ -520,7 +522,7 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
         return rc;
       }
 
-      ss << "everything is ok" << endl;
+
 
       // 校验查询字段是否存在、两边字段是否相同类型
       int postion;
@@ -534,7 +536,6 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
         }
       }else{
         postion = tuple_set.get_schema().index_of_field(table_name, condition.left_attr.attribute_name);
-        ss << "everything is ok" << endl;
         if(postion < 0){
           delete select_node;
           delete sub_select_node;
@@ -549,7 +550,7 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
         end_trx_if_need(session, trx, false);
         return RC::GENERIC_ERROR;
       }
-      ss << "everything is ok" << endl;
+
       vector<Tuple> tmp_tuple = tuple_set.tuples();
 
       // 判断查询类型
