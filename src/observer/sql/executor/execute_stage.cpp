@@ -702,10 +702,14 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
     }
 
     tuple_set.print_single_table(ss);
+    ss << "is sub query" << endl;
     session_event->set_response(ss.str());
     end_trx_if_need(session, trx, true);
     return RC::SUCCESS;
   }
+
+  ss << "is not sub query" << endl;
+  return RC::SUCCESS;
 
 
   // group by list合法性校验 (其实应该先对属性、判断条件的合法性初步校验，可以省去后面的步骤)
