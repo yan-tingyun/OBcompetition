@@ -420,7 +420,7 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
       condition_filters.push_back(condition_filter);
     }
   }
-  ss << "ok1" << endl;
+
 
   RC rc = select_node->init(trx, table, std::move(schema), std::move(condition_filters));
   if(rc != RC::SUCCESS){
@@ -430,7 +430,6 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
     }
     return rc;
   }
-  ss << "ok2" << endl;
 
   if(select_node == nullptr){
     LOG_ERROR("No table given");
@@ -445,8 +444,6 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
     end_trx_if_need(session, trx, false);
     return rc;
   }
-
-  ss << "ok3" << endl;
 
   // 处理子查询
   for (size_t c = 0; c < selects.condition_num; c++) {
@@ -522,7 +519,7 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
         return rc;
       }
 
-
+      ss<<"ok"<<endl;
 
       // 校验查询字段是否存在、两边字段是否相同类型
       int postion;
@@ -543,6 +540,7 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
           return RC::GENERIC_ERROR;
         }
       }
+      ss<<"ok"<<endl;
 
       if(tuple_set.get_schema().field(postion).type() != sub_set.get_schema().field(0).type()){
         delete select_node;
@@ -550,6 +548,7 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
         end_trx_if_need(session, trx, false);
         return RC::GENERIC_ERROR;
       }
+      ss<<"ok"<<endl;
 
       vector<Tuple> tmp_tuple = tuple_set.tuples();
 
@@ -562,6 +561,7 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
             end_trx_if_need(session, trx, false);
             return RC::GENERIC_ERROR;
           }
+          ss<<"ok"<<endl;
           
           unordered_set<string> set;
           for (const Tuple &item : sub_set.tuples()){
