@@ -476,6 +476,8 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
         return RC::SCHEMA_FIELD_NOT_EXIST;
       }
 
+      ss<<"ok"<<endl;
+
       std::vector<DefaultConditionFilter *> condition_filters;
       for (size_t i = 0; i < sub_select.condition_num; i++) {
         const Condition &sub_condition = sub_select.conditions[i];
@@ -499,6 +501,7 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
           condition_filters.push_back(condition_filter);
         }
       }
+      ss<<"ok"<<endl;
       rc = sub_select_node->init(trx, sub_table, std::move(sub_schema), std::move(condition_filters));
 
       if(rc != RC::SUCCESS){
@@ -509,6 +512,7 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
         }
         return rc;
       }
+      ss<<"ok"<<endl;
 
       TupleSet sub_set;
       rc = sub_select_node->execute(sub_set);
@@ -540,7 +544,6 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
           return RC::GENERIC_ERROR;
         }
       }
-      ss<<"ok"<<endl;
 
       if(tuple_set.get_schema().field(postion).type() != sub_set.get_schema().field(0).type()){
         delete select_node;
@@ -548,7 +551,6 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
         end_trx_if_need(session, trx, false);
         return RC::GENERIC_ERROR;
       }
-      ss<<"ok"<<endl;
 
       vector<Tuple> tmp_tuple = tuple_set.tuples();
 
@@ -561,7 +563,6 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
             end_trx_if_need(session, trx, false);
             return RC::GENERIC_ERROR;
           }
-          ss<<"ok"<<endl;
           
           unordered_set<string> set;
           for (const Tuple &item : sub_set.tuples()){
