@@ -77,10 +77,12 @@ void condition_init(Condition *condition, CompOp comp,
   condition->comp = comp;
   condition->left_is_attr = left_is_attr;
   condition->sub_query = nullptr;
-  if (left_is_attr) {
-    condition->left_attr = *left_attr;
-  } else {
-    condition->left_value = *left_value;
+  if(left_attr != nullptr || left_value != nullptr){
+    if (left_is_attr) {
+      condition->left_attr = *left_attr;
+    } else {
+      condition->left_value = *left_value;
+    }
   }
 
   condition->right_is_attr = right_is_attr;

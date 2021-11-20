@@ -445,7 +445,6 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
     return rc;
   }
 
-
   // 处理子查询
   for (size_t c = 0; c < selects.condition_num; c++) {
     const Condition &condition = selects.conditions[c];
@@ -455,9 +454,6 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
       const char *sub_table_name = selects.relations[0];
       TupleSchema sub_schema;
 
-      if(sub_select.aggre_type[0] == AVG_F)
-        ss << "ok" << endl;
-
       Table * sub_table = DefaultHandler::get_default().find_table(db, sub_table_name);
       if (nullptr == sub_table) {
         LOG_WARN("No such table [%s] in db [%s]", sub_table_name, db);
@@ -465,9 +461,6 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
         delete sub_select_node;
         return RC::SCHEMA_TABLE_NOT_EXIST;
       }
-
-      if(sub_select.aggre_type[0] == AVG_F)
-        ss << "ok" << endl;
       
 
       const RelAttr &attr = sub_select.attributes[0];
@@ -484,9 +477,6 @@ RC do_sub_query(Trx *trx,Session *session,const char *db,const Selects &selects,
         delete sub_select_node;
         return RC::SCHEMA_FIELD_NOT_EXIST;
       }
-
-      if(sub_select.aggre_type[0] == AVG_F)
-        ss << "ok" << endl;
 
       
       std::vector<DefaultConditionFilter *> condition_filters;
@@ -715,7 +705,7 @@ RC ExecuteStage::do_select(const char *db, Query *sql, SessionEvent *session_eve
   if(is_sub_query){
     TupleSet tuple_set;
     RC rc = do_sub_query(trx,session,db,selects,tuple_set,ss);
-    session_event->set_response(ss.str());
+    // session_event->set_response(ss.str());
     if(rc != RC::SUCCESS){
       end_trx_if_need(session, trx, false);
       return rc;
